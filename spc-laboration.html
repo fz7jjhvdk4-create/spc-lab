@@ -1,0 +1,2774 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPC-laborationen — Statistisk processtyrning &amp; kapabilitet</title>
+<style>
+/* ============================================================
+   SPC-LABORATIONEN — Svenska Axel AB
+   Estetik: svensk verkstadshandbok / teknisk ritning.
+   En helt fristående fil: ingen server, inga externa beroenden.
+   ============================================================ */
+
+:root{
+  --paper:      #f6f3ec;
+  --paper-2:    #fdfcf8;
+  --grid-line:  rgba(38, 92, 130, 0.10);
+  --ink:        #1b2831;
+  --ink-soft:   #47555f;
+  --ink-faint:  #7d8a93;
+  --line:       #cfc9ba;
+  --line-soft:  #e4dfd2;
+  --blue:       #1f5b7d;
+  --blue-deep:  #143d55;
+  --blue-pale:  #e3edf2;
+  --red:        #b23a2a;
+  --red-pale:   #f7e6e2;
+  --green:      #1e6f44;
+  --green-pale: #e2f0e7;
+  --amber:      #96690f;
+  --amber-pale: #f7edd6;
+  --teal:       #1a6e6e;
+  --serif: "Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --mono: "SF Mono","Cascadia Code","Source Code Pro",Consolas,"Liberation Mono",Menlo,monospace;
+  --sans: "Avenir Next","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  --shadow: 0 1px 2px rgba(27,40,49,.08), 0 6px 18px -8px rgba(27,40,49,.18);
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+html{ scroll-behavior:smooth; }
+
+body{
+  font-family:var(--serif);
+  color:var(--ink);
+  background-color:var(--paper);
+  background-image:
+    repeating-linear-gradient(0deg,   var(--grid-line) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(90deg,  var(--grid-line) 0 1px, transparent 1px 28px);
+  font-size:17px;
+  line-height:1.6;
+}
+
+::selection{ background:var(--blue); color:var(--paper-2); }
+
+h1,h2,h3,h4{ font-family:var(--serif); line-height:1.25; font-weight:700; }
+
+p{ margin-bottom:.85em; }
+p:last-child{ margin-bottom:0; }
+
+strong{ color:var(--ink); }
+em{ color:var(--ink-soft); }
+
+code, .num{
+  font-family:var(--mono);
+  font-size:.92em;
+  background:rgba(31,91,125,.07);
+  padding:.05em .3em;
+  border-radius:3px;
+  white-space:nowrap;
+}
+
+a{ color:var(--blue); }
+
+button{ font-family:var(--sans); cursor:pointer; }
+
+/* ---------- Rubriketiketter (small caps, brickor) ---------- */
+.kicker{
+  font-family:var(--sans);
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--blue);
+}
+
+/* ---------- Sidhuvud: ritningshuvud ---------- */
+header.masthead{
+  background:var(--ink);
+  color:var(--paper);
+  border-bottom:4px solid var(--blue);
+}
+.masthead-inner{
+  max-width:1080px; margin:0 auto; padding:20px 24px 16px;
+  display:flex; flex-wrap:wrap; gap:16px 28px; align-items:flex-end; justify-content:space-between;
+}
+.masthead h1{
+  font-size:1.7rem; letter-spacing:.01em; color:var(--paper-2);
+}
+.masthead h1 .thin{ font-weight:400; opacity:.85; }
+.masthead .sub{
+  font-family:var(--sans); font-size:.78rem; letter-spacing:.14em; text-transform:uppercase;
+  color:#9db4c2; margin-top:2px;
+}
+/* Ritningshuvudets rutnätsblock */
+.titleblock{
+  display:grid; grid-template-columns:auto auto auto;
+  border:1px solid #4a5b66; font-family:var(--mono); font-size:.72rem;
+  background:rgba(255,255,255,.03);
+}
+.titleblock div{ padding:4px 12px; border-left:1px solid #4a5b66; }
+.titleblock div:first-child{ border-left:none; }
+.titleblock .tb-label{ display:block; color:#8fa4b1; font-family:var(--sans); font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; }
+.titleblock .tb-value{ color:var(--paper-2); font-size:.82rem; }
+
+/* ---------- Stegvisare / navigering ---------- */
+nav.stepper{
+  background:var(--paper-2);
+  border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:50;
+  box-shadow:0 2px 10px -6px rgba(27,40,49,.25);
+}
+.stepper-inner{
+  max-width:1080px; margin:0 auto; padding:0 16px;
+  display:flex; overflow-x:auto;
+}
+.step-btn{
+  appearance:none; background:none; border:none;
+  border-bottom:3px solid transparent;
+  padding:12px 14px 10px;
+  display:flex; align-items:center; gap:9px;
+  font-family:var(--sans); font-size:.8rem; font-weight:600; color:var(--ink-soft);
+  white-space:nowrap;
+}
+.step-btn .step-no{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; border:1.5px solid currentColor;
+  font-family:var(--mono); font-size:.72rem; font-weight:700;
+}
+.step-btn:not(:disabled):hover{ color:var(--blue); background:var(--blue-pale); }
+.step-btn.active{ color:var(--blue); border-bottom-color:var(--blue); }
+.step-btn.done .step-no{ background:var(--green); border-color:var(--green); color:#fff; }
+.step-btn:disabled{ color:var(--ink-faint); opacity:.55; cursor:not-allowed; }
+.step-btn .lock{ font-size:.85em; }
+
+/* ---------- Huvudlayout ---------- */
+main{ max-width:1080px; margin:0 auto; padding:34px 24px 90px; }
+.moment{ display:none; }
+.moment.visible{ display:block; animation:fadeUp .45s ease both; }
+@keyframes fadeUp{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:none;} }
+
+.moment-head{ margin-bottom:26px; max-width:820px; }
+.moment-head h2{ font-size:2.05rem; margin:.2em 0 .35em; }
+.moment-head .lede{ font-size:1.1rem; color:var(--ink-soft); }
+
+/* ---------- Kort ---------- */
+.card{
+  background:var(--paper-2);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:24px 26px;
+  margin-bottom:26px;
+  position:relative;
+}
+.card > h3{
+  font-size:1.22rem; margin-bottom:12px;
+  display:flex; align-items:baseline; gap:10px;
+}
+.card > h3 .tag{
+  font-family:var(--sans); font-size:.68rem; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--paper-2); background:var(--blue);
+  padding:3px 8px; transform:translateY(-2px);
+}
+
+/* ---------- Uppdragskort (Din uppgift) ---------- */
+.mission{
+  border-left:5px solid var(--blue);
+}
+.mission .kicker{ margin-bottom:6px; display:block; }
+
+/* ---------- Callouts ---------- */
+.callout{
+  border:1px solid; border-left-width:5px;
+  padding:14px 18px; margin:18px 0;
+  font-size:.97rem;
+  background:var(--paper-2);
+}
+.callout .co-title{
+  font-family:var(--sans); font-size:.72rem; font-weight:700;
+  letter-spacing:.15em; text-transform:uppercase;
+  display:block; margin-bottom:5px;
+}
+.callout.info   { border-color:var(--blue);  background:var(--blue-pale); }
+.callout.info    .co-title{ color:var(--blue); }
+.callout.insight{ border-color:var(--teal);  background:#e2efef; }
+.callout.insight .co-title{ color:var(--teal); }
+.callout.warn   { border-color:var(--amber); background:var(--amber-pale); }
+.callout.warn    .co-title{ color:var(--amber); }
+.callout.fail   { border-color:var(--red);   background:var(--red-pale); }
+.callout.fail    .co-title{ color:var(--red); }
+.callout.pass   { border-color:var(--green); background:var(--green-pale); }
+.callout.pass    .co-title{ color:var(--green); }
+
+/* ---------- Steglista ---------- */
+ol.steps{ counter-reset:steg; list-style:none; margin:14px 0; }
+ol.steps > li{
+  counter-increment:steg;
+  position:relative; padding:0 0 14px 46px;
+}
+ol.steps > li::before{
+  content:counter(steg);
+  position:absolute; left:0; top:1px;
+  width:28px; height:28px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--ink); color:var(--paper-2);
+  font-family:var(--mono); font-size:.85rem; font-weight:700;
+}
+ol.steps > li::after{
+  content:""; position:absolute; left:13.5px; top:32px; bottom:2px;
+  width:1px; background:var(--line);
+}
+ol.steps > li:last-child::after{ display:none; }
+
+ul.plain{ margin:10px 0 10px 22px; }
+ul.plain li{ margin-bottom:6px; }
+
+/* ---------- Teorirutor (details) ---------- */
+details.theory{
+  border:1px dashed var(--blue);
+  background:var(--blue-pale);
+  margin:18px 0; padding:0;
+}
+details.theory > summary{
+  cursor:pointer; list-style:none;
+  padding:12px 18px;
+  font-family:var(--sans); font-size:.82rem; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--blue);
+  display:flex; align-items:center; gap:10px;
+}
+details.theory > summary::before{ content:"▸"; transition:transform .2s; }
+details.theory[open] > summary::before{ transform:rotate(90deg); }
+details.theory > summary::-webkit-details-marker{ display:none; }
+details.theory .theory-body{ padding:2px 20px 16px; font-size:.97rem; }
+details.theory .theory-body p{ margin-bottom:.7em; }
+
+/* ---------- Knappar ---------- */
+.btn{
+  display:inline-flex; align-items:center; gap:9px;
+  border:1.5px solid var(--ink);
+  background:var(--ink); color:var(--paper-2);
+  font-size:.83rem; font-weight:700; letter-spacing:.06em;
+  padding:11px 20px;
+  transition:background .15s, transform .1s, box-shadow .15s;
+  box-shadow:2.5px 2.5px 0 rgba(27,40,49,.25);
+}
+.btn:hover:not(:disabled){ background:var(--blue-deep); border-color:var(--blue-deep); transform:translate(-1px,-1px); box-shadow:3.5px 3.5px 0 rgba(27,40,49,.3); }
+.btn:active:not(:disabled){ transform:translate(1px,1px); box-shadow:1px 1px 0 rgba(27,40,49,.3); }
+.btn:disabled{ opacity:.45; cursor:not-allowed; }
+.btn.primary{ background:var(--blue); border-color:var(--blue); }
+.btn.ghost{ background:transparent; color:var(--ink); }
+.btn.ghost:hover:not(:disabled){ background:var(--paper); color:var(--ink); border-color:var(--ink); }
+.btn.danger{ background:transparent; color:var(--red); border-color:var(--red); box-shadow:none; }
+.btn.danger:hover:not(:disabled){ background:var(--red); color:#fff; border-color:var(--red); }
+.btn.big{ font-size:.95rem; padding:14px 28px; }
+.btn-row{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin:14px 0; }
+
+/* ---------- Reglage ---------- */
+.slider-row{
+  display:grid; grid-template-columns:190px 1fr 110px;
+  gap:14px; align-items:center; margin:10px 0;
+}
+.slider-row label{ font-family:var(--sans); font-size:.82rem; font-weight:600; color:var(--ink-soft); }
+.slider-row input[type=range]{ width:100%; accent-color:var(--blue); height:22px; }
+.slider-row output{
+  font-family:var(--mono); font-size:.95rem; font-weight:700; text-align:right;
+  background:var(--paper); border:1px solid var(--line); padding:4px 8px;
+}
+
+input[type=text], textarea{
+  font-family:var(--serif); font-size:1rem; color:var(--ink);
+  border:1px solid var(--line); background:var(--paper-2);
+  padding:10px 12px; width:100%;
+}
+input[type=text]:focus, textarea:focus{ outline:2px solid var(--blue); outline-offset:1px; }
+textarea{ min-height:96px; resize:vertical; }
+
+/* ---------- Mätvärdesremsa ---------- */
+.readout-strip{
+  display:flex; flex-wrap:wrap; gap:12px; margin:16px 0;
+}
+.readout{
+  flex:1 1 120px; min-width:120px;
+  border:1px solid var(--line); background:var(--paper);
+  padding:10px 14px;
+}
+.readout .r-label{
+  font-family:var(--sans); font-size:.66rem; font-weight:700;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--ink-faint);
+  display:block; margin-bottom:2px;
+}
+.readout .r-value{ font-family:var(--mono); font-size:1.25rem; font-weight:700; }
+.readout .r-unit{ font-family:var(--sans); font-size:.72rem; color:var(--ink-faint); margin-left:3px; }
+.readout.good .r-value{ color:var(--green); }
+.readout.bad  .r-value{ color:var(--red); }
+.readout.warn .r-value{ color:var(--amber); }
+
+/* ---------- Formler ---------- */
+.formula-block{
+  background:var(--paper);
+  border:1px solid var(--line);
+  padding:18px 20px;
+  margin:16px 0;
+  overflow-x:auto;
+}
+.formula-block .f-title{
+  font-family:var(--sans); font-size:.7rem; font-weight:700;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint);
+  margin-bottom:10px; display:block;
+}
+.formula{
+  font-family:var(--mono); font-size:1.02rem;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  margin:10px 0;
+}
+.frac{ display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; }
+.frac .top{ padding:0 10px 3px; }
+.frac .bot{ padding:3px 10px 0; border-top:1.5px solid var(--ink); }
+.f-eq{ font-weight:700; }
+.f-res{ font-weight:700; font-size:1.12em; padding:2px 10px; border:1.5px solid; }
+.f-res.good{ color:var(--green); border-color:var(--green); background:var(--green-pale); }
+.f-res.bad{ color:var(--red); border-color:var(--red); background:var(--red-pale); }
+.f-res.warn{ color:var(--amber); border-color:var(--amber); background:var(--amber-pale); }
+.c-usl{ color:var(--red); font-weight:700; }
+.c-lsl{ color:var(--red); font-weight:700; }
+.c-mean{ color:var(--blue); font-weight:700; }
+.c-sd{ color:var(--teal); font-weight:700; }
+.c-const{ color:var(--amber); font-weight:700; }
+.f-note{ font-family:var(--serif); font-size:.9rem; color:var(--ink-soft); margin-top:8px; }
+
+/* ---------- Tabeller ---------- */
+table.data{
+  border-collapse:collapse; width:100%;
+  font-family:var(--mono); font-size:.82rem;
+  background:var(--paper-2);
+}
+table.data caption{
+  text-align:left; font-family:var(--sans); font-size:.7rem; font-weight:700;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--ink-faint);
+  padding-bottom:8px;
+}
+table.data th{
+  font-family:var(--sans); font-size:.68rem; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase;
+  text-align:right; color:var(--ink-soft);
+  border-bottom:2px solid var(--ink);
+  padding:6px 10px;
+}
+table.data th:first-child{ text-align:left; }
+table.data td{
+  border-bottom:1px solid var(--line-soft);
+  padding:5px 10px; text-align:right;
+}
+table.data td:first-child{ text-align:left; }
+table.data tr.out td{ background:var(--red-pale); }
+.table-scroll{ max-height:300px; overflow:auto; border:1px solid var(--line); }
+
+/* ---------- Mätvärden som trillar in ---------- */
+.measure-feed{
+  display:flex; flex-wrap:wrap; gap:6px; margin:12px 0;
+  min-height:34px;
+}
+.measure-chip{
+  font-family:var(--mono); font-size:.8rem; font-weight:600;
+  border:1px solid var(--line); background:var(--paper);
+  padding:4px 8px;
+  animation:chipIn .35s ease both;
+}
+.measure-chip.out{ border-color:var(--red); color:var(--red); background:var(--red-pale); }
+@keyframes chipIn{ from{ opacity:0; transform:translateY(6px) scale(.9);} to{ opacity:1; transform:none;} }
+
+/* ---------- Stämplar ---------- */
+.stamp{
+  display:inline-block;
+  font-family:var(--sans); font-weight:800; font-size:1.05rem;
+  letter-spacing:.22em; text-transform:uppercase;
+  border:3px double; padding:8px 20px;
+  transform:rotate(-4deg);
+  margin:8px 4px;
+  animation:stampIn .4s cubic-bezier(.2,1.6,.4,1) both;
+}
+.stamp.pass{ color:var(--green); border-color:var(--green); }
+.stamp.fail{ color:var(--red); border-color:var(--red); }
+@keyframes stampIn{ from{ opacity:0; transform:rotate(-4deg) scale(1.7);} to{ opacity:1; transform:rotate(-4deg) scale(1);} }
+
+/* ---------- Diagram ---------- */
+.chart-wrap{ margin:16px 0; overflow-x:auto; }
+.chart-wrap svg{ display:block; max-width:100%; height:auto; }
+.chart-title{
+  font-family:var(--sans); font-size:.72rem; font-weight:700;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--ink-soft);
+  margin-bottom:4px;
+}
+svg text{ font-family:var(--mono); }
+.legend{
+  display:flex; flex-wrap:wrap; gap:16px; margin-top:6px;
+  font-family:var(--sans); font-size:.74rem; color:var(--ink-soft);
+}
+.legend span{ display:inline-flex; align-items:center; gap:6px; }
+.legend i{ display:inline-block; width:18px; height:0; border-top:3px solid; }
+.legend i.dashed{ border-top-style:dashed; }
+.legend i.dot{ width:9px; height:9px; border:none; border-radius:50%; }
+
+/* ---------- Scenariokort (moment 2) ---------- */
+.scenario-tabs{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+.scenario-tab{
+  font-family:var(--sans); font-size:.8rem; font-weight:700;
+  border:1.5px solid var(--ink); background:var(--paper-2); color:var(--ink);
+  padding:9px 16px;
+}
+.scenario-tab:hover{ background:var(--blue-pale); }
+.scenario-tab.active{ background:var(--ink); color:var(--paper-2); }
+.scenario-tab .s-status{ margin-left:7px; }
+
+.answer-options{ display:grid; gap:8px; margin:12px 0; }
+.answer-options label{
+  display:flex; gap:10px; align-items:baseline;
+  border:1px solid var(--line); background:var(--paper-2);
+  padding:10px 14px; cursor:pointer; font-size:.97rem;
+}
+.answer-options label:hover{ border-color:var(--blue); background:var(--blue-pale); }
+.answer-options input{ accent-color:var(--blue); transform:translateY(1px); }
+.answer-options label.correct{ border-color:var(--green); background:var(--green-pale); }
+.answer-options label.wrong{ border-color:var(--red); background:var(--red-pale); }
+
+/* ---------- Åtgärdskort (moment 4) ---------- */
+.action-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; margin:16px 0; }
+.action-card{
+  border:1.5px solid var(--line); background:var(--paper-2);
+  padding:14px 16px; cursor:pointer; position:relative;
+  transition:border-color .15s, background .15s;
+  display:block;
+}
+.action-card:hover{ border-color:var(--blue); }
+.action-card input{ position:absolute; opacity:0; }
+.action-card.selected{ border-color:var(--blue); background:var(--blue-pale); box-shadow:inset 0 0 0 1.5px var(--blue); }
+.action-card .a-name{ font-weight:700; display:block; margin-bottom:4px; }
+.action-card .a-desc{ font-size:.85rem; color:var(--ink-soft); display:block; margin-bottom:8px; }
+.action-card .a-cost{
+  font-family:var(--mono); font-size:.8rem; font-weight:700; color:var(--blue);
+  border-top:1px dashed var(--line); padding-top:6px; display:block;
+}
+.budget-bar{
+  font-family:var(--mono); font-size:.9rem; margin:10px 0;
+  border:1px solid var(--line); background:var(--paper); padding:10px 14px;
+}
+.budget-bar .over{ color:var(--red); font-weight:700; }
+
+/* ---------- Quiz ---------- */
+.quiz{
+  border:1px solid var(--line); border-top:5px solid var(--amber);
+  background:var(--paper-2); box-shadow:var(--shadow);
+  padding:24px 26px; margin:30px 0;
+}
+.quiz h3{ font-size:1.2rem; margin-bottom:4px; }
+.quiz .quiz-sub{ font-size:.92rem; color:var(--ink-soft); margin-bottom:16px; }
+.quiz.locked{ border-top-color:var(--line); }
+.quiz.locked .quiz-q, .quiz.locked > .btn-row{
+  opacity:.4; filter:grayscale(1); pointer-events:none; user-select:none;
+}
+.quiz-lock-note{
+  border:1.5px dashed var(--amber); background:var(--amber-pale);
+  padding:12px 16px; margin:4px 0 14px;
+  font-family:var(--sans); font-size:.88rem; color:var(--ink-soft);
+}
+.quiz-q{ margin:18px 0; padding-top:14px; border-top:1px dashed var(--line); }
+.quiz-q .q-text{ font-weight:700; margin-bottom:10px; }
+.quiz-q .q-no{
+  font-family:var(--mono); color:var(--amber); font-weight:700; margin-right:6px;
+}
+.q-explain{
+  margin-top:8px; font-size:.92rem; padding:10px 14px;
+  border-left:4px solid; display:none;
+}
+.q-explain.show{ display:block; }
+.q-explain.ok{ border-color:var(--green); background:var(--green-pale); }
+.q-explain.nok{ border-color:var(--red); background:var(--red-pale); }
+.quiz-result{ margin-top:16px; font-weight:700; }
+
+/* ---------- Reflektion ---------- */
+.reflect{ border-top:5px solid var(--teal); }
+.reflect .saved-note{ font-family:var(--sans); font-size:.75rem; color:var(--green); margin-left:10px; opacity:0; transition:opacity .3s; }
+.reflect .saved-note.show{ opacity:1; }
+
+/* ---------- Nästa moment ---------- */
+.next-gate{
+  text-align:center; padding:26px;
+  border:1.5px dashed var(--line); background:var(--paper-2);
+  margin-top:32px;
+}
+.next-gate .gate-status{ font-family:var(--sans); font-size:.85rem; color:var(--ink-soft); margin-bottom:14px; }
+.next-gate .gate-status .todo{ color:var(--red); }
+.next-gate .gate-status .done{ color:var(--green); }
+
+/* ---------- Ordlista (dfn + modal) ---------- */
+dfn{
+  font-style:normal; font-weight:600; color:var(--blue);
+  border-bottom:1.5px dotted var(--blue); cursor:help; position:relative;
+}
+dfn:hover::after, dfn:focus::after{
+  content:attr(data-def);
+  position:absolute; left:50%; bottom:calc(100% + 8px); transform:translateX(-50%);
+  width:min(320px, 70vw);
+  background:var(--ink); color:var(--paper-2);
+  font-family:var(--sans); font-size:.78rem; font-weight:400; line-height:1.45;
+  padding:10px 13px; z-index:80;
+  box-shadow:var(--shadow);
+}
+dialog#glossary{
+  border:2px solid var(--ink); background:var(--paper-2); color:var(--ink);
+  max-width:680px; width:92vw; max-height:82vh; overflow:auto;
+  padding:28px 30px; margin:auto;
+}
+dialog#glossary::backdrop{ background:rgba(27,40,49,.55); }
+dialog#glossary h3{ margin-bottom:14px; }
+dialog#glossary dt{ font-weight:700; color:var(--blue); margin-top:12px; font-family:var(--sans); font-size:.9rem; }
+dialog#glossary dd{ margin-left:0; font-size:.95rem; }
+
+/* ---------- Startskärm ---------- */
+#start-screen{ max-width:680px; margin:40px auto; }
+#start-screen .card{ padding:34px 38px; }
+#start-screen h2{ font-size:1.9rem; margin-bottom:10px; }
+.start-list{ margin:18px 0 22px 0; list-style:none; }
+.start-list li{ padding:7px 0 7px 34px; position:relative; }
+.start-list li::before{
+  content:"§"; position:absolute; left:4px; color:var(--blue); font-weight:700; font-family:var(--mono);
+}
+
+/* ---------- Rapport ---------- */
+#report-content .rep-section{ margin-bottom:34px; }
+#report-content h3{ border-bottom:2px solid var(--ink); padding-bottom:6px; margin-bottom:14px; }
+.rep-meta{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  border:1px solid var(--ink); margin:16px 0; font-family:var(--mono); font-size:.85rem;
+}
+.rep-meta > div{ padding:8px 14px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
+.rep-meta .tb-label{ display:block; font-family:var(--sans); font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); }
+.rep-incomplete{ color:var(--ink-faint); font-style:italic; }
+
+/* ---------- Sidfot ---------- */
+footer.colophon{
+  border-top:1px solid var(--line);
+  padding:26px 24px 40px; text-align:center;
+  font-family:var(--sans); font-size:.75rem; color:var(--ink-faint);
+}
+
+/* ---------- Utskrift ---------- */
+@media print{
+  body{ background:none; font-size:11pt; }
+  header.masthead, nav.stepper, footer.colophon, .no-print{ display:none !important; }
+  main{ padding:0; max-width:none; }
+  .moment{ display:none !important; }
+  #moment-report{ display:block !important; }
+  .card{ box-shadow:none; border-color:#999; page-break-inside:avoid; }
+  .chart-wrap{ page-break-inside:avoid; }
+}
+
+/* ---------- Responsivt ---------- */
+@media (max-width:720px){
+  body{ font-size:16px; }
+  .masthead-inner{ padding:16px; }
+  .titleblock{ display:none; }
+  main{ padding:22px 14px 70px; }
+  .card{ padding:18px 16px; }
+  .slider-row{ grid-template-columns:1fr; gap:6px; }
+  .slider-row output{ justify-self:start; }
+  .moment-head h2{ font-size:1.6rem; }
+}
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div>
+      <div class="sub">Laboration · Kvalitetsteknik &amp; industriell statistik</div>
+      <h1>SPC-laborationen <span class="thin">· Svenska Axel AB</span></h1>
+    </div>
+    <div class="titleblock" aria-label="Ritningshuvud">
+      <div><span class="tb-label">Artikel</span><span class="tb-value">Axel A-2504</span></div>
+      <div><span class="tb-label">Mått</span><span class="tb-value">Ø 25,000 mm</span></div>
+      <div><span class="tb-label">Tolerans</span><span class="tb-value">± 0,050 mm</span></div>
+      <div><span class="tb-label">Maskin</span><span class="tb-value">Svarv 3 (CNC)</span></div>
+      <div><span class="tb-label">Laborant</span><span class="tb-value" id="tb-student">–</span></div>
+      <div><span class="tb-label">Datum</span><span class="tb-value" id="tb-date">–</span></div>
+    </div>
+  </div>
+</header>
+
+<nav class="stepper no-print" id="stepper" style="display:none">
+  <div class="stepper-inner" role="tablist" aria-label="Laborationens moment">
+    <button class="step-btn" data-moment="0"><span class="step-no">0</span>Introduktion</button>
+    <button class="step-btn" data-moment="1"><span class="step-no">1</span>Maskinkapabilitet</button>
+    <button class="step-btn" data-moment="2"><span class="step-no">2</span>Styrdiagram</button>
+    <button class="step-btn" data-moment="3"><span class="step-no">3</span>Processkapabilitet</button>
+    <button class="step-btn" data-moment="4"><span class="step-no">4</span>Förbättra &amp; verifiera</button>
+    <button class="step-btn" data-moment="5"><span class="step-no">§</span>Labrapport</button>
+    <button class="step-btn" id="btn-glossary" style="margin-left:auto"><span aria-hidden="true">🕮</span>Ordlista</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- ============================================================
+     STARTSKÄRM
+     ============================================================ -->
+<section id="start-screen">
+  <div class="card">
+    <span class="kicker">Välkommen till laborationen</span>
+    <h2>Din första dag som kvalitetsingenjör</h2>
+    <p>Du har just börjat på <strong>Svenska Axel AB</strong>, som tillverkar axlar till
+    växellådor. Företagets viktigaste maskin, <strong>Svarv&nbsp;3</strong>, svarvar axeln
+    A-2504 med kravet <code>Ø 25,000 ± 0,050 mm</code>. Kunden har klagat på för många
+    kasserade axlar &mdash; och din chef vill att du reder ut varför.</p>
+    <p>Under laborationen kommer du att:</p>
+    <ul class="start-list">
+      <li>utforska hur <strong>variation</strong> uppstår och beskrivs statistiskt,</li>
+      <li>genomföra en <strong>maskinkapabilitetsstudie</strong> (C<sub>m</sub>, C<sub>mk</sub>),</li>
+      <li>bygga och tolka <strong>styrdiagram</strong> (x̄- och R-diagram),</li>
+      <li>genomföra en <strong>processkapabilitetsstudie</strong> (C<sub>p</sub>, C<sub>pk</sub>),</li>
+      <li>välja <strong>förbättringsåtgärder</strong> och verifiera att de fungerar,</li>
+      <li>sammanställa allt i en <strong>labrapport</strong>.</li>
+    </ul>
+    <p>Momenten låses upp i tur och ordning. Dina data är unika för dig &mdash; de skapas
+    ur ditt namn &mdash; så din labbkompis får andra mätvärden än du. Allt du gör sparas
+    automatiskt i webbläsaren, så du kan stänga sidan och fortsätta senare.</p>
+    <div style="margin-top:22px">
+      <label for="student-name" style="font-family:var(--sans);font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)">Ditt namn (för- och efternamn)</label>
+      <input type="text" id="student-name" placeholder="t.ex. Kim Andersson" autocomplete="name" style="margin-top:6px">
+    </div>
+    <div class="btn-row" style="margin-top:18px">
+      <button class="btn primary big" id="btn-start">Stämpla in&nbsp;→</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     MOMENT 0 — INTRODUKTION & TEORI
+     ============================================================ -->
+<section class="moment" id="moment-0">
+  <div class="moment-head">
+    <span class="kicker">Moment 0 · Grunderna</span>
+    <h2>Variation — kvalitetens fiende nummer ett</h2>
+    <p class="lede">Ingen tillverkningsprocess gör två exakt likadana detaljer. Frågan är
+    aldrig <em>om</em> det finns variation, utan <em>hur stor</em> den är, <em>var</em> processen
+    ligger &mdash; och om variationen är <em>naturlig</em> eller ett tecken på att något har hänt.</p>
+  </div>
+
+  <div class="card mission">
+    <span class="kicker">Din uppgift i detta moment</span>
+    <p style="margin-top:6px">Lär dig verktygens språk: normalfördelningen, dess läge (<span class="c-mean">μ</span>)
+    och spridning (<span class="c-sd">σ</span>), samt skillnaden mellan <dfn data-def="Gränser som kunden/konstruktören kräver att varje enskild detalj ska ligga inom. Kallas även specifikationsgränser.">toleransgränser</dfn>
+    och <dfn data-def="Gränser beräknade ur processens egna data som visar hur mycket processen naturligt varierar. Används i styrdiagram för att upptäcka förändringar.">styrgränser</dfn>.
+    Experimentera med reglagen nedan tills du kan förklara varför <em>läge</em> och <em>spridning</em>
+    är två helt olika problem &mdash; och klara sedan kontrollfrågorna.</p>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag">Teori</span>Två sorters variation</h3>
+    <p>Kvalitetstekniken skiljer på två slags orsaker till variation:</p>
+    <ul class="plain">
+      <li><strong>Slumpmässiga orsaker</strong> (naturlig variation): summan av många små,
+      ständigt närvarande störningar &mdash; vibrationer, små temperaturskillnader, spel i lager.
+      De ger processen dess normala &laquo;brus&raquo; och kan bara minskas genom att förbättra
+      själva processen.</li>
+      <li><strong>Urskiljbara orsaker</strong> (speciella orsaker): enskilda, identifierbara
+      händelser &mdash; ett verktyg går sönder, ett nytt materialparti, en felinställning.
+      De <em>kan och ska</em> hittas och åtgärdas.</li>
+    </ul>
+    <p>En process som bara påverkas av slumpmässiga orsaker sägs vara <dfn data-def="En process vars variation är stabil och förutsägbar över tid – endast slumpmässiga orsaker påverkar den.">i statistisk jämvikt</dfn>
+    (stabil). Först då är det meningsfullt att fråga: <em>räcker</em> processens precision för
+    toleranskraven? Det är exakt vad kapabilitetsstudierna i moment&nbsp;1 och&nbsp;3 svarar på.</p>
+    <div class="callout info">
+      <span class="co-title">Tänk så här</span>
+      Vardagsexempel: din restid till skolan varierar några minuter varje dag (slumpmässiga
+      orsaker). Men den dag bussen ställs in blir restiden 25 minuter längre (urskiljbar orsak).
+      Ett styrdiagram är verktyget som skiljer den inställda bussen från vanligt trafikbrus.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag">Laborera</span>Normalfördelningen mot toleransgränserna</h3>
+    <p>Mätvärden från en stabil process beskrivs ofta väl av en <strong>normalfördelning</strong>
+    med medelvärde <span class="c-mean">μ</span> (läget) och standardavvikelse
+    <span class="c-sd">σ</span> (spridningen). Kurvan nedan visar fördelningen för Svarv&nbsp;3:s
+    axeldiameter tillsammans med toleransgränserna
+    <span class="c-lsl">UTG&nbsp;=&nbsp;24,950</span> och <span class="c-usl">ÖTG&nbsp;=&nbsp;25,050&nbsp;mm</span>.
+    Den röda ytan är den andel axlar som <strong>kasseras</strong>.</p>
+    <p><strong>Prova själv</strong> &mdash; dra i reglagen och studera kassationen:</p>
+    <div class="slider-row">
+      <label for="m0-mu">Läge <span class="c-mean">μ</span> (mm)</label>
+      <input type="range" id="m0-mu" min="24.960" max="25.040" step="0.001" value="25.000">
+      <output id="m0-mu-out">25,000</output>
+    </div>
+    <div class="slider-row">
+      <label for="m0-sigma">Spridning <span class="c-sd">σ</span> (mm)</label>
+      <input type="range" id="m0-sigma" min="0.004" max="0.030" step="0.001" value="0.012">
+      <output id="m0-sigma-out">0,012</output>
+    </div>
+    <div class="chart-wrap" id="m0-widget"></div>
+    <div class="readout-strip">
+      <div class="readout"><span class="r-label">Utanför tolerans</span><span class="r-value" id="m0-ppm">–</span><span class="r-unit">ppm</span></div>
+      <div class="readout"><span class="r-label">Kassation</span><span class="r-value" id="m0-pct">–</span><span class="r-unit">%</span></div>
+      <div class="readout"><span class="r-label">Avstånd ÖTG − μ</span><span class="r-value" id="m0-dist-u">–</span><span class="r-unit">σ</span></div>
+      <div class="readout"><span class="r-label">Avstånd μ − UTG</span><span class="r-value" id="m0-dist-l">–</span><span class="r-unit">σ</span></div>
+    </div>
+    <div class="callout warn">
+      <span class="co-title">Utforska innan du går vidare</span>
+      <ul class="plain" style="margin-bottom:0">
+        <li>Ställ <span class="c-sd">σ</span> = 0,008 och flytta <span class="c-mean">μ</span> till 25,030. Vad händer med kassationen &mdash; trots att spridningen är liten?</li>
+        <li>Centrera <span class="c-mean">μ</span> = 25,000 och öka <span class="c-sd">σ</span> till 0,025. Nu är processen perfekt centrerad &mdash; hjälper det?</li>
+        <li>Hur många <span class="c-sd">σ</span> ryms mellan μ och närmaste toleransgräns när kassationen precis blir försumbar? Kom ihåg svaret &mdash; det blir kärnan i kapabilitetsindexen.</li>
+      </ul>
+    </div>
+    <details class="theory">
+      <summary>Fördjupning: tumregler för normalfördelningen</summary>
+      <div class="theory-body">
+        <p>Inom ±1σ från medelvärdet ligger ca <code>68,3 %</code> av alla värden, inom ±2σ ca
+        <code>95,4 %</code> och inom ±3σ ca <code>99,73 %</code>. Ligger toleransgränserna ±3σ
+        från ett centrerat medelvärde kasseras alltså ca 0,27 % &mdash; 2&nbsp;700 ppm. Modern
+        industri kräver ofta mycket bättre: ±4σ ger 63 ppm och ±5σ ger 0,6 ppm.</p>
+        <p>Därför byggs kapabilitetsindexen på hur många <em>gånger 3σ</em> som ryms innanför
+        toleransen &mdash; index 1,0 motsvarar precis ±3σ.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag">Teori</span>Kundens röst och processens röst</h3>
+    <p>Två slags gränser förväxlas ständigt &mdash; håll isär dem från början:</p>
+    <ul class="plain">
+      <li><strong>Toleransgränser (UTG/ÖTG)</strong> &mdash; <em>kundens röst</em>. De kommer från
+      ritningen och säger vad en enskild detalj måste klara för att duga. Processen vet
+      ingenting om dem.</li>
+      <li><strong>Styrgränser (SG)</strong> &mdash; <em>processens röst</em>. De beräknas ur
+      processens egna data och visar hur mycket processen <em>faktiskt</em> varierar när den är
+      stabil. De används för att larma när något förändras.</li>
+    </ul>
+    <p>En process kan vara stabil men ändå göra skrot (för stor naturlig variation) &mdash; och
+    en process kan göra godkända detaljer men vara instabil (på väg åt fel håll). I moment
+    1&ndash;4 lär du dig hantera båda situationerna.</p>
+  </div>
+
+  <div id="quiz-m0"></div>
+  <div id="reflect-m0"></div>
+  <div class="next-gate" id="gate-m0"></div>
+</section>
+
+<!-- ============================================================
+     MOMENT 1 — MASKINKAPABILITET
+     ============================================================ -->
+<section class="moment" id="moment-1">
+  <div class="moment-head">
+    <span class="kicker">Moment 1 · Kort studie</span>
+    <h2>Maskinkapabilitet — vad klarar Svarv 3 egentligen?</h2>
+    <p class="lede">En maskinkapabilitetsstudie svarar på frågan: <em>duger själva maskinen?</em>
+    Vi tillverkar detaljer i en följd under så störningsfria former som möjligt, så att i stort
+    sett bara maskinens egen variation syns i mätvärdena.</p>
+  </div>
+
+  <div class="card mission">
+    <span class="kicker">Din uppgift i detta moment</span>
+    <p style="margin-top:6px">Genomför en maskinkapabilitetsstudie på Svarv&nbsp;3:
+    tillverka och mät <strong>50 axlar i följd</strong>, beräkna
+    <dfn data-def="Maskinkapabilitetsindex: hur många gånger 6s som ryms i toleransvidden. Tar bara hänsyn till spridningen, inte läget.">C𝗆</dfn> och
+    <dfn data-def="Korrigerat maskinkapabilitetsindex: som Cm men tar även hänsyn till hur väl maskinen är centrerad i toleransen.">C𝗆𝗄</dfn>
+    och bedöm dem mot företagets krav <strong>C<sub>m</sub> ≥ 1,67 och C<sub>mk</sub> ≥ 1,67</strong>.
+    Blir studien inte godkänd är det ditt jobb att justera maskinen och köra en ny studie.</p>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag">Teori</span>Så fungerar en maskinkapabilitetsstudie</h3>
+    <p>För att mäta <em>maskinens</em> förmåga måste allt annat hållas så konstant som möjligt:</p>
+    <ul class="plain">
+      <li>detaljer tillverkas <strong>i en obruten följd</strong> (kort tid &mdash; ingen verktygsförslitning, ingen temperaturdrift),</li>
+      <li>samma operatör, samma materialparti, ingen justering under körningen,</li>
+      <li>minst 50 detaljer för en någorlunda säker skattning av spridningen.</li>
+    </ul>
+    <p>Ur mätvärdena beräknas medelvärdet <span class="c-mean">x̄</span> och standardavvikelsen
+    <span class="c-sd">s</span>, och därefter:</p>
+    <div class="formula-block">
+      <span class="f-title">Maskinkapabilitetsindex</span>
+      <div class="formula">C<sub>m</sub>&nbsp;<span class="f-eq">=</span>
+        <span class="frac"><span class="top"><span class="c-usl">ÖTG</span> − <span class="c-lsl">UTG</span></span><span class="bot">6·<span class="c-sd">s</span></span></span>
+        <span style="color:var(--ink-faint)">&nbsp;&mdash; enbart spridningen</span>
+      </div>
+      <div class="formula">C<sub>mk</sub>&nbsp;<span class="f-eq">=</span> min
+        <span style="font-size:1.6em">(</span>
+        <span class="frac"><span class="top"><span class="c-usl">ÖTG</span> − <span class="c-mean">x̄</span></span><span class="bot">3·<span class="c-sd">s</span></span></span>,
+        <span class="frac"><span class="top"><span class="c-mean">x̄</span> − <span class="c-lsl">UTG</span></span><span class="bot">3·<span class="c-sd">s</span></span></span>
+        <span style="font-size:1.6em">)</span>
+        <span style="color:var(--ink-faint)">&nbsp;&mdash; spridning <em>och</em> läge</span>
+      </div>
+      <p class="f-note">C<sub>m</sub> jämför hela toleransvidden med maskinens naturliga spridning 6s.
+      C<sub>mk</sub> mäter avståndet från <span class="c-mean">x̄</span> till <em>närmaste</em> toleransgräns
+      i enheter om 3s. Är maskinen perfekt centrerad blir C<sub>mk</sub> = C<sub>m</sub>; annars är C<sub>mk</sub>
+      alltid mindre. Kravet sätts högre för maskin (1,67) än för process (1,33) &mdash; maskinen är ju bara
+      <em>en</em> av processens alla variationskällor.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag">Laborera</span>Steg 1 · Tillverka 50 axlar</h3>
+    <ol class="steps">
+      <li>Kontrollera att förutsättningarna är uppfyllda: uppvärmd maskin, ett materialparti, ingen justering under körning. <em>(Klart &mdash; teknikern har förberett Svarv&nbsp;3.)</em></li>
+      <li>Tillverka 50 axlar med knapparna nedan. Varje axel mäts direkt i mätstationen (upplösning 0,001&nbsp;mm).</li>
+      <li>Granska histogrammet och individvärdesdiagrammet: ser fördelningen normal ut? Några misstänkta hopp eller trender?</li>
+      <li>Beräkna och bedöm C<sub>m</sub> och C<sub>mk</sub> mot kravet ≥ 1,67.</li>
+    </ol>
+    <div class="btn-row">
+      <button class="btn primary" id="m1-make1">⚙ Tillverka 1 axel</button>
+      <button class="btn primary" id="m1-make10">⚙ Tillverka 10 axlar</button>
+      <span style="font-family:var(--mono);font-size:.95rem" id="m1-counter">0 / 50 axlar</span>
+    </div>
+    <div class="measure-feed" id="m1-feed" aria-live="polite"></div>
+    <div id="m1-results"></div>
+  </div>
+
+  <div class="card" id="m1-adjust-card" style="display:none">
+    <h3><span class="tag">Åtgärda</span>Steg 2 · Justera maskinen och kör om studien</h3>
+    <p>En <dfn data-def="En inställning i CNC-maskinens styrsystem som talar om exakt var verktygets skäregg befinner sig. Genom att ändra offseten flyttas alla tillverkade mått med motsvarande värde — utan att program eller verktyg byts.">verktygsoffset</dfn>
+    är en siffra i svarvens styrsystem som talar om var verktygets skäregg står i förhållande till
+    arbetsstycket. Ändrar du offseten flyttas <em>alla</em> tillverkade mått med precis det värdet
+    &mdash; ungefär som att vrida siktet på ett gevär: spridningen i skottbilden ändras inte, men
+    hela träffbilden flyttas. Därför är offseten det naturliga verktyget för att justera processens
+    <em>läge</em>: positivt värde ger större diameter, negativt mindre.</p>
+    <p>Använd ditt uppmätta <span class="c-mean">x̄</span> för att räkna ut hur stor
+    justering som behövs för att hamna mitt i toleransen (målvärde <code>25,000 mm</code>).</p>
+    <div class="slider-row">
+      <label for="m1-offset">Verktygsoffset (mm)</label>
+      <input type="range" id="m1-offset" min="-0.040" max="0.040" step="0.001" value="0">
+      <output id="m1-offset-out">+0,000</output>
+    </div>
+    <div class="callout info">
+      <span class="co-title">Ledtråd</span>
+      Om studien gav <span class="c-mean">x̄</span> = 25,021 mm och målet är 25,000 mm, hur stor
+      offsetändring behövs då? Tänk på att offseten <em>adderas</em> till nuvarande inställning.
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="m1-newstudy">↻ Ny studie med denna inställning</button>
+    </div>
+  </div>
+
+  <div id="quiz-m1"></div>
+  <div id="reflect-m1"></div>
+  <div class="next-gate" id="gate-m1"></div>
+</section>
+<!-- ============================================================
+     MOMENT 2 — STYRDIAGRAM
+     ============================================================ -->
+<section class="moment" id="moment-2">
+  <div class="moment-head">
+    <span class="kicker">Moment 2 · Övervaka processen</span>
+    <h2>Styrdiagram — processens EKG</h2>
+    <p class="lede">Maskinen är nu godkänd och produktionen rullar. Men hur upptäcker vi
+    <em>i tid</em> om något förändras &mdash; ett verktyg som slits, ett avvikande materialparti?
+    Svaret är styrdiagrammet: ett löpande diagram med larmgränser beräknade ur processens
+    egen naturliga variation.</p>
+  </div>
+
+  <div class="card mission">
+    <span class="kicker">Din uppgift i detta moment</span>
+    <p style="margin-top:6px">Upprätta <strong>x̄- och R-diagram</strong> för Svarv&nbsp;3:
+    samla först 25 <dfn data-def="En liten grupp detaljer (här n=5) som tillverkats nära varandra i tid. Provgruppens medelvärde och variationsvidd blir varsin punkt i styrdiagrammen.">provgrupper</dfn>
+    om 5 axlar från stabil drift och beräkna styrgränserna. Övervaka sedan fyra
+    produktionsveckor (scenario A&ndash;D) och avgör i varje fall om processen är stabil
+    &mdash; och i så fall <em>vad</em> som har hänt.</p>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag">Teori</span>Så byggs ett x̄/R-diagram</h3>
+    <p>Med jämna mellanrum tas en provgrupp om <code>n = 5</code> detaljer. För varje grupp
+    beräknas medelvärdet <span class="c-mean">x̄</span> (fångar <em>läget</em>) och
+    variationsvidden <span class="c-sd">R</span> = max − min (fångar <em>spridningen</em>).
+    Ur ett underlag på minst 20&ndash;25 stabila provgrupper beräknas centrallinjer och styrgränser:</p>
+    <div class="formula-block">
+      <span class="f-title">Styrgränser (n = 5)</span>
+      <div class="formula">x̄-diagram:&nbsp; <span class="f-eq">SG = </span> x̄̄ ± <span class="c-const">A₂</span>·R̄ &nbsp;&nbsp;<span style="color:var(--ink-faint)">där <span class="c-const">A₂ = 0,577</span></span></div>
+      <div class="formula">R-diagram:&nbsp; <span class="f-eq">ÖSG = </span><span class="c-const">D₄</span>·R̄ = <span class="c-const">2,114</span>·R̄, &nbsp; <span class="f-eq">USG = </span><span class="c-const">D₃</span>·R̄ = 0</div>
+      <p class="f-note">x̄̄ är medelvärdet av alla gruppmedelvärden och R̄ medelvärdet av alla
+      variationsvidder. Konstanterna A₂, D₃, D₄ beror på provgruppsstorleken och är tabellerade
+      så att gränserna motsvarar ±3 standardavvikelser <em>för punkterna i diagrammet</em>.
+      Observera: styrgränserna har inget med toleransgränserna att göra!</p>
+    </div>
+    <details class="theory">
+      <summary>Fördjupning: larmregler (Western Electric)</summary>
+      <div class="theory-body">
+        <p>Ett larm behöver inte vara en punkt utanför styrgränsen. Även osannolika <em>mönster</em>
+        avslöjar urskiljbara orsaker. Vanliga regler (zonerna C/B/A ligger 0&ndash;1σ, 1&ndash;2σ
+        respektive 2&ndash;3σ från centrallinjen):</p>
+        <ul class="plain">
+          <li><strong>Regel 1:</strong> en punkt utanför 3σ-gränsen (zon A passerad).</li>
+          <li><strong>Regel 2:</strong> 2 av 3 punkter i följd i zon A på samma sida.</li>
+          <li><strong>Regel 3:</strong> 4 av 5 punkter i följd i zon B eller utanför, samma sida.</li>
+          <li><strong>Regel 4:</strong> 8 punkter i följd på samma sida om centrallinjen.</li>
+          <li><strong>Regel 5 (trend):</strong> 6 punkter i följd som alla ökar eller alla minskar.</li>
+        </ul>
+        <p>Laborationen rättar dina bedömningar mot just dessa regler.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag">Laborera</span>Steg 1 · Upprätta styrgränserna</h3>
+    <p>Teknikern kör Svarv&nbsp;3 i stabil, störningsfri drift och tar ut 25 provgrupper om
+    5 axlar. Hämta mätvärdena och beräkna gränserna.</p>
+    <div class="btn-row">
+      <button class="btn primary" id="m2-collect">▦ Hämta 25 provgrupper</button>
+    </div>
+    <div id="m2-phase1-results"></div>
+  </div>
+
+  <div class="card" id="m2-scenario-card" style="display:none">
+    <h3><span class="tag">Laborera</span>Steg 2 · Övervaka fyra produktionsveckor</h3>
+    <p>Styrgränserna från steg 1 är nu fastlagda och ritas in i diagrammen. Under fyra veckor
+    tas 20 nya provgrupper per vecka. <strong>Din uppgift:</strong> granska diagrammen för varje
+    vecka, avgör om processen varit stabil och ställ i så fall diagnos. Rätta ditt svar innan
+    du går till nästa vecka.</p>
+    <div class="scenario-tabs" id="m2-tabs"></div>
+    <div id="m2-scenario-view"></div>
+  </div>
+
+  <div id="quiz-m2"></div>
+  <div id="reflect-m2"></div>
+  <div class="next-gate" id="gate-m2"></div>
+</section>
+
+<!-- ============================================================
+     MOMENT 3 — PROCESSKAPABILITET
+     ============================================================ -->
+<section class="moment" id="moment-3">
+  <div class="moment-head">
+    <span class="kicker">Moment 3 · Lång studie</span>
+    <h2>Processkapabilitet — verkligheten över tid</h2>
+    <p class="lede">Maskinen klarade 1,67 med god marginal. Men kunden köper inte
+    &laquo;maskinkapabilitet&raquo; &mdash; kunden får axlar från den <em>verkliga processen</em>,
+    med skiftbyten, materialpartier, temperaturdrift och verktygsslitage. Nu mäter vi den.</p>
+  </div>
+
+  <div class="card mission">
+    <span class="kicker">Din uppgift i detta moment</span>
+    <p style="margin-top:6px">Genomför en <strong>processkapabilitetsstudie</strong>: samla in
+    mätdata från <strong>en hel produktionsvecka</strong> (5 dagar × 2 skift, 25 axlar per skift =
+    250 mätvärden), beräkna <dfn data-def="Processkapabilitetsindex: toleransvidden delad med processens totala spridning 6s, mätt över längre tid med alla variationskällor.">C𝗉</dfn>
+    och <dfn data-def="Korrigerat processkapabilitetsindex: som Cp men tar även hänsyn till processens centrering.">C𝗉𝗄</dfn>,
+    bedöm mot kravet <strong>C<sub>p</sub>, C<sub>pk</sub> ≥ 1,33</strong> och förklara varför
+    resultatet skiljer sig från maskinstudien i moment&nbsp;1.</p>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag">Teori</span>Maskin är inte process</h3>
+    <p>Formlerna känns igen från moment&nbsp;1 &mdash; skillnaden ligger i <em>datat</em>:</p>
+    <div class="formula-block">
+      <span class="f-title">Processkapabilitetsindex</span>
+      <div class="formula">C<sub>p</sub>&nbsp;<span class="f-eq">=</span>
+        <span class="frac"><span class="top"><span class="c-usl">ÖTG</span> − <span class="c-lsl">UTG</span></span><span class="bot">6·<span class="c-sd">s</span></span></span>
+        &nbsp;&nbsp;
+        C<sub>pk</sub>&nbsp;<span class="f-eq">=</span> min
+        <span style="font-size:1.6em">(</span>
+        <span class="frac"><span class="top"><span class="c-usl">ÖTG</span> − <span class="c-mean">x̄</span></span><span class="bot">3·<span class="c-sd">s</span></span></span>,
+        <span class="frac"><span class="top"><span class="c-mean">x̄</span> − <span class="c-lsl">UTG</span></span><span class="bot">3·<span class="c-sd">s</span></span></span>
+        <span style="font-size:1.6em">)</span>
+      </div>
+      <p class="f-note">Men <span class="c-sd">s</span> beräknas nu ur data insamlade <strong>över
+      lång tid</strong> &mdash; så att verktygsslitage, temperaturdrift, materialpartier och
+      omställningar hinner bidra med sin variation. Därför gäller alltid
+      <strong>C<sub>p</sub> ≤ C<sub>m</sub></strong>, och kravnivån sätts lägre: 1,33.</p>
+    </div>
+    <details class="theory">
+      <summary>Fördjupning: olika sätt att skatta σ (Cp/Cpk vs Pp/Ppk)</summary>
+      <div class="theory-body">
+        <p>I industrin förekommer två skattningar av spridningen: den <em>totala</em>
+        standardavvikelsen s (alla mätvärden i en räkning) och spridningen <em>inom provgrupper</em>,
+        σ̂ = R̄/d₂ (med d₂ = 2,326 för n = 5). Inomgruppsskattningen missar variation <em>mellan</em>
+        grupper (t.ex. batchbyten) och blir därför ofta mindre.</p>
+        <p>Många företag och standarder (bl.a. AIAG) kallar indexen med inomgrupps-σ̂ för
+        C<sub>p</sub>/C<sub>pk</sub> ("potentiell duglighet") och indexen med total s för
+        P<sub>p</sub>/P<sub>pk</sub> ("presterad duglighet"). I denna laboration använder vi den
+        totala standardavvikelsen s rakt igenom &mdash; det är den som avgör vad kunden faktiskt får.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag">Laborera</span>Kör produktionsveckan</h3>
+    <ol class="steps">
+      <li>Samla in mätdata skift för skift med knappen nedan (25 axlar per skift, verktyget byts vid varje skiftstart).</li>
+      <li>Studera förloppet i individvärdesdiagrammet: kan du <em>se</em> variationskällorna &mdash; skiftvisa nivåskillnader, drift inom skift?</li>
+      <li>Jämför histogrammet med maskinstudiens histogram från moment 1.</li>
+      <li>Beräkna C<sub>p</sub> och C<sub>pk</sub> och bedöm mot kravet ≥ 1,33.</li>
+    </ol>
+    <div class="btn-row">
+      <button class="btn primary" id="m3-run-shift">▶ Kör nästa skift</button>
+      <button class="btn" id="m3-run-all">▶▶ Kör hela veckan</button>
+      <span style="font-family:var(--mono);font-size:.95rem" id="m3-counter">0 / 10 skift</span>
+    </div>
+    <div id="m3-results"></div>
+  </div>
+
+  <div id="quiz-m3"></div>
+  <div id="reflect-m3"></div>
+  <div class="next-gate" id="gate-m3"></div>
+</section>
+
+<!-- ============================================================
+     MOMENT 4 — FÖRBÄTTRA & VERIFIERA
+     ============================================================ -->
+<section class="moment" id="moment-4">
+  <div class="moment-head">
+    <span class="kicker">Moment 4 · Förbättringsarbete</span>
+    <h2>Förbättra processen — och bevisa att det hjälpte</h2>
+    <p class="lede">Processkapabiliteten räckte inte. Nu börjar kvalitetsingenjörens riktiga
+    arbete: identifiera de största variationskällorna, välja åtgärder inom budget &mdash; och
+    <em>verifiera</em> förbättringen med en ny kapabilitetsstudie. Detta är PDCA-cykelns
+    Planera&ndash;Gör&ndash;Studera&ndash;Lär i praktiken.</p>
+  </div>
+
+  <div class="card mission">
+    <span class="kicker">Din uppgift i detta moment</span>
+    <p style="margin-top:6px">Ledningen har gett dig en förbättringsbudget på
+    <strong>80&nbsp;kkr</strong>. Välj åtgärder, genomför dem och kör en ny veckolång
+    kapabilitetsstudie. Målet: <strong>C<sub>pk</sub> ≥ 1,33</strong>, verifierat med data.
+    Blir det inte godkänt får du ompröva dina val och försöka igen &mdash; men varje försök
+    kostar en produktionsvecka, så tänk efter före!</p>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag">Analysera</span>Vad säger dina data från moment 3?</h3>
+    <p>Titta en gång till på individvärdesdiagrammet från produktionsveckan (moment&nbsp;3).
+    Fundera på vilka variationskällor du kan se spår av:</p>
+    <ul class="plain">
+      <li><strong>Läget:</strong> Ligger processens medelvärde mitt i toleransen, eller förskjutet åt något håll?</li>
+      <li><strong>Inom skift:</strong> Stiger måtten under skiftets gång (verktygsslitage)? Böjer sig kurvan i början (uppvärmning)?</li>
+      <li><strong>Mellan skift:</strong> Hoppar nivån mellan skiften (materialpartier, omställning)?</li>
+    </ul>
+    <div class="callout info">
+      <span class="co-title">Strategi</span>
+      Åtgärda alltid <strong>läget först</strong> &mdash; att centrera processen är oftast gratis.
+      Lägg därefter pengarna på den <strong>största spridningskällan</strong>. Standardavvikelser
+      adderas kvadratiskt (σ²<sub>tot</sub> = σ₁² + σ₂² + …), så att halvera en liten källa ger
+      nästan ingenting.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag">Åtgärda</span>Steg 1 · Välj åtgärder inom budget</h3>
+    <div id="m4-actions" class="action-grid"></div>
+    <div class="budget-bar" id="m4-budget"></div>
+    <div class="btn-row">
+      <button class="btn primary big" id="m4-verify">▶ Genomför åtgärderna och kör verifierande studie</button>
+      <span style="font-family:var(--mono);font-size:.9rem" id="m4-attempts"></span>
+    </div>
+  </div>
+
+  <div id="m4-results-wrap"></div>
+
+  <div id="quiz-m4"></div>
+  <div id="reflect-m4"></div>
+  <div class="next-gate" id="gate-m4"></div>
+</section>
+
+<!-- ============================================================
+     LABRAPPORT
+     ============================================================ -->
+<section class="moment" id="moment-report">
+  <div class="moment-head no-print">
+    <span class="kicker">Redovisning</span>
+    <h2>Labrapport</h2>
+    <p class="lede">Här sammanställs allt du gjort: data, diagram, beräkningar, quizresultat och
+    dina reflektioner. Spara rapporten som PDF (via utskriftsdialogen) på din egen dator och
+    ladda sedan upp den på kursens Canvas-sida enligt anvisningarna.</p>
+  </div>
+  <div class="btn-row no-print">
+    <button class="btn primary big" id="btn-print">🖶 Skriv ut / spara som PDF</button>
+    <button class="btn ghost" id="btn-refresh-report">↻ Uppdatera rapporten</button>
+    <button class="btn danger" id="btn-reset-all">Nollställ hela laborationen…</button>
+  </div>
+  <div id="report-content" class="card" style="padding:34px 38px"></div>
+</section>
+
+</main>
+
+<!-- ============================================================
+     ORDLISTA
+     ============================================================ -->
+<dialog id="glossary">
+  <h3>Ordlista</h3>
+  <dl>
+    <dt>Toleransgränser (UTG / ÖTG)</dt><dd>Undre respektive övre toleransgräns — kundens/ritningens krav på varje enskild detalj. Kallas även specifikationsgränser (LSL/USL på engelska).</dd>
+    <dt>Styrgränser (SG)</dt><dd>Larmgränser i ett styrdiagram, beräknade ur processens egna data (±3σ för den storhet som plottas). Har inget med toleransgränserna att göra.</dd>
+    <dt>Normalfördelning</dt><dd>Symmetrisk, klockformad sannolikhetsfördelning som beskrivs helt av läget μ och spridningen σ. Summan av många små oberoende störningar blir approximativt normalfördelad.</dd>
+    <dt>Standardavvikelse (σ, s)</dt><dd>Mått på spridning. σ betecknar processens sanna värde, s skattningen ur ett stickprov.</dd>
+    <dt>Slumpmässiga orsaker</dt><dd>Många små, ständigt närvarande störningar som tillsammans ger processens naturliga variation.</dd>
+    <dt>Urskiljbara orsaker</dt><dd>Identifierbara enskilda händelser (verktygsbrott, nytt materialparti, felinställning) som förändrar processen och bör åtgärdas.</dd>
+    <dt>Statistisk jämvikt (stabil process)</dt><dd>Processtillstånd där endast slumpmässiga orsaker verkar — variationen är förutsägbar över tid.</dd>
+    <dt>Maskinkapabilitet (C<sub>m</sub>, C<sub>mk</sub>)</dt><dd>Kapabilitetsindex ur en kort studie där i princip bara maskinens egen variation ingår. Vanligt krav: ≥ 1,67.</dd>
+    <dt>Processkapabilitet (C<sub>p</sub>, C<sub>pk</sub>)</dt><dd>Kapabilitetsindex ur data över längre tid, där alla processens variationskällor ingår. Vanligt krav: ≥ 1,33.</dd>
+    <dt>Provgrupp</dt><dd>Liten grupp detaljer (ofta 3–5) tillverkade nära varandra i tid. Grunden för punkterna i x̄- och R-diagram.</dd>
+    <dt>Variationsvidd (R)</dt><dd>Största minus minsta värde i en provgrupp. Enkelt spridningsmått som används i R-diagrammet.</dd>
+    <dt>Verktygsoffset</dt><dd>En inställning i CNC-maskinens styrsystem som anger var verktygets skäregg står i förhållande till arbetsstycket. Ändras offseten flyttas alla tillverkade mått med motsvarande värde (positivt = större diameter). Offseten påverkar bara processens <em>läge</em>, inte dess spridning — därför är den rätt verktyg för att centrera en process, men hjälper inte mot för stor variation.</dd>
+    <dt>x̄-diagram / R-diagram</dt><dd>Styrdiagram för provgruppernas medelvärden (läget) respektive variationsvidder (spridningen).</dd>
+    <dt>Western Electric-reglerna</dt><dd>Uppsättning mönsterregler (utöver "punkt utanför 3σ") som ökar styrdiagrammets känslighet för skift, trender och andra systematiska förändringar.</dd>
+    <dt>ppm</dt><dd>Parts per million — antal felaktiga per miljon tillverkade. 1 % = 10 000 ppm.</dd>
+    <dt>PDCA</dt><dd>Planera–Gör–Studera–Lär (Plan–Do–Study–Act): förbättringscykeln där varje ändring verifieras med data innan den standardiseras.</dd>
+    <dt>d₂, A₂, D₃, D₄</dt><dd>Tabellerade konstanter som beror på provgruppsstorleken n och används för att beräkna styrgränser (för n = 5: d₂ = 2,326; A₂ = 0,577; D₃ = 0; D₄ = 2,114).</dd>
+  </dl>
+  <div class="btn-row" style="margin-top:20px">
+    <button class="btn" id="btn-close-glossary">Stäng</button>
+  </div>
+</dialog>
+
+<footer class="colophon no-print">
+  SPC-laborationen · Statistisk processtyrning och kapabilitetsstudier för högskoleingenjörer ·
+  Fiktivt företag, simulerade data · Data genereras deterministiskt ur laborantens namn
+</footer>
+<script>
+"use strict";
+/* ============================================================
+   DEL 1 · KÄRNA — slumptal, statistik, formatering, SVG-diagram
+   ============================================================ */
+
+/* ---------- Deterministisk slumpgenerator ----------
+   Studentens namn + ett strömnamn hashas till ett frö, så att
+   varje student får unika men reproducerbara data. */
+function xmur3(str){
+  let h = 1779033703 ^ str.length;
+  for(let i = 0; i < str.length; i++){
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return function(){
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return (h ^= h >>> 16) >>> 0;
+  };
+}
+function mulberry32(a){
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function makeRng(streamId){
+  const seedFn = xmur3((state.studentName || "anonym").trim().toLowerCase() + "|" + streamId);
+  const rand = mulberry32(seedFn());
+  rand.gauss = function(){ // Box–Muller
+    let u = 0, v = 0;
+    while(u === 0) u = rand();
+    while(v === 0) v = rand();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  };
+  return rand;
+}
+
+/* ---------- Statistik ---------- */
+const SPEC = { target: 25.000, lsl: 24.950, usl: 25.050, tol: 0.100 };
+const CONST_N5 = { A2: 0.577, D3: 0, D4: 2.114, d2: 2.326 };
+
+function mean(a){ return a.reduce((s, x) => s + x, 0) / a.length; }
+function sd(a){ // stickprovsstandardavvikelse (n−1)
+  const m = mean(a);
+  return Math.sqrt(a.reduce((s, x) => s + (x - m) * (x - m), 0) / (a.length - 1));
+}
+function normPdf(x, mu, sigma){
+  return Math.exp(-0.5 * ((x - mu) / sigma) ** 2) / (sigma * Math.sqrt(2 * Math.PI));
+}
+function normCdf(x, mu, sigma){ // Abramowitz–Stegun-approximation av Φ
+  const z = (x - mu) / sigma;
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const d = 0.3989422804014327 * Math.exp(-z * z / 2);
+  let p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+  return z > 0 ? 1 - p : p;
+}
+function ppmOutside(mu, sigma){
+  const below = normCdf(SPEC.lsl, mu, sigma);
+  const above = 1 - normCdf(SPEC.usl, mu, sigma);
+  return (below + above) * 1e6;
+}
+function capability(values){
+  const m = mean(values), s = sd(values);
+  return {
+    n: values.length, mean: m, sd: s,
+    min: Math.min(...values), max: Math.max(...values),
+    cp: SPEC.tol / (6 * s),
+    cpu: (SPEC.usl - m) / (3 * s),
+    cpl: (m - SPEC.lsl) / (3 * s),
+    cpk: Math.min((SPEC.usl - m) / (3 * s), (m - SPEC.lsl) / (3 * s)),
+    ppm: ppmOutside(m, s),
+    nOutside: values.filter(v => v < SPEC.lsl || v > SPEC.usl).length
+  };
+}
+
+/* ---------- Western Electric-regler på x̄-serien ----------
+   z = avstånd från CL i enheter av sigma_xbar (= (UCL−CL)/3).
+   Returnerar per punkt en lista av regelnummer som utlöses. */
+function weRules(points, cl, ucl){
+  const sig = (ucl - cl) / 3;
+  const z = points.map(p => (p - cl) / sig);
+  const flags = points.map(() => []);
+  const side = z.map(v => (v > 0 ? 1 : v < 0 ? -1 : 0));
+  for(let i = 0; i < z.length; i++){
+    if(Math.abs(z[i]) > 3) flags[i].push(1);
+    if(i >= 2){ // 2 av 3 utanför 2σ, samma sida
+      for(const sgn of [1, -1]){
+        const w = z.slice(i - 2, i + 1);
+        if(w.filter(v => sgn * v > 2).length >= 2 && sgn * z[i] > 2) flags[i].push(2);
+      }
+    }
+    if(i >= 4){ // 4 av 5 utanför 1σ, samma sida
+      for(const sgn of [1, -1]){
+        const w = z.slice(i - 4, i + 1);
+        if(w.filter(v => sgn * v > 1).length >= 4 && sgn * z[i] > 1) flags[i].push(3);
+      }
+    }
+    if(i >= 7){ // 8 i följd på samma sida
+      const w = side.slice(i - 7, i + 1);
+      if(w.every(v => v === 1) || w.every(v => v === -1)) flags[i].push(4);
+    }
+    if(i >= 5){ // 6 i följd stigande eller fallande
+      let up = true, down = true;
+      for(let j = i - 4; j <= i; j++){
+        if(points[j] <= points[j - 1]) up = false;
+        if(points[j] >= points[j - 1]) down = false;
+      }
+      if(up || down) flags[i].push(5);
+    }
+  }
+  return flags.map(f => [...new Set(f)]);
+}
+function rRuleFlags(ranges, uclR){
+  return ranges.map(r => (r > uclR ? [1] : []));
+}
+
+/* ---------- Formatering (svensk decimal) ---------- */
+function fmt(x, d = 3){
+  if(!isFinite(x)) return "–";
+  return x.toFixed(d).replace(".", ",").replace("-", "−");
+}
+function fmtSigned(x, d = 3){
+  return (x >= 0 ? "+" : "") + fmt(x, d);
+}
+function fmtPpm(x){
+  if(!isFinite(x)) return "–";
+  if(x < 0.1) return "< 0,1";
+  if(x < 100) return fmt(x, 1);
+  return Math.round(x).toLocaleString("sv-SE").replace(/ /g, " ");
+}
+function esc(s){
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function el(id){ return document.getElementById(id); }
+
+/* ============================================================
+   SVG-DIAGRAM — allt ritas för hand, inga bibliotek
+   ============================================================ */
+const CHART = {
+  ink: "#1b2831", faint: "#7d8a93", grid: "#e2ddd0",
+  blue: "#1f5b7d", red: "#b23a2a", green: "#1e6f44", teal: "#1a6e6e",
+  amber: "#96690f", paleBlue: "rgba(31,91,125,.08)", paleRed: "rgba(178,58,42,.16)"
+};
+
+function niceTicks(min, max, n = 6){
+  const span = max - min;
+  const step0 = span / n;
+  const mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  let step = mag;
+  for(const m of [1, 2, 2.5, 5, 10]){ if(step0 <= m * mag){ step = m * mag; break; } }
+  const ticks = [];
+  for(let t = Math.ceil(min / step) * step; t <= max + step * 1e-9; t += step){
+    ticks.push(Math.round(t * 1e9) / 1e9);
+  }
+  return ticks;
+}
+function tickDecimals(ticks){
+  let d = 0;
+  for(const t of ticks){
+    const s = String(t);
+    const i = s.indexOf(".");
+    if(i >= 0) d = Math.max(d, s.length - i - 1);
+  }
+  return Math.min(d, 3);
+}
+
+/* Gemensam ram: skalor + axlar. Returnerar {x, y, body[], W, H, m} */
+function chartFrame(W, H, xDomain, yDomain, opts = {}){
+  const m = Object.assign({ t: 20, r: 78, b: 34, l: 60 }, opts.margin || {});
+  const x = v => m.l + (v - xDomain[0]) / (xDomain[1] - xDomain[0]) * (W - m.l - m.r);
+  const y = v => H - m.b - (v - yDomain[0]) / (yDomain[1] - yDomain[0]) * (H - m.t - m.b);
+  const body = [];
+  // y-axel
+  const yt = opts.yTicks || niceTicks(yDomain[0], yDomain[1], 5);
+  const yd = opts.yDecimals !== undefined ? opts.yDecimals : tickDecimals(yt);
+  for(const t of yt){
+    if(t < yDomain[0] - 1e-12 || t > yDomain[1] + 1e-12) continue;
+    body.push(`<line x1="${m.l}" y1="${y(t)}" x2="${W - m.r}" y2="${y(t)}" stroke="${CHART.grid}" stroke-width="1"/>`);
+    body.push(`<text x="${m.l - 7}" y="${y(t) + 3.5}" text-anchor="end" font-size="10" fill="${CHART.faint}">${fmt(t, yd)}</text>`);
+  }
+  // x-axel
+  if(opts.xTicks){
+    const xd = opts.xDecimals !== undefined ? opts.xDecimals : tickDecimals(opts.xTicks);
+    for(const t of opts.xTicks){
+      if(t < xDomain[0] - 1e-12 || t > xDomain[1] + 1e-12) continue;
+      body.push(`<line x1="${x(t)}" y1="${H - m.b}" x2="${x(t)}" y2="${H - m.b + 4}" stroke="${CHART.ink}" stroke-width="1"/>`);
+      body.push(`<text x="${x(t)}" y="${H - m.b + 15}" text-anchor="middle" font-size="10" fill="${CHART.faint}">${opts.xTickFmt ? opts.xTickFmt(t) : fmt(t, xd)}</text>`);
+    }
+  }
+  body.push(`<line x1="${m.l}" y1="${H - m.b}" x2="${W - m.r}" y2="${H - m.b}" stroke="${CHART.ink}" stroke-width="1.4"/>`);
+  body.push(`<line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${H - m.b}" stroke="${CHART.ink}" stroke-width="1.4"/>`);
+  if(opts.xLabel) body.push(`<text x="${(m.l + W - m.r) / 2}" y="${H - 4}" text-anchor="middle" font-size="10" fill="${CHART.ink}" font-family="inherit">${opts.xLabel}</text>`);
+  if(opts.yLabel) body.push(`<text x="14" y="${m.t - 6}" font-size="10" fill="${CHART.ink}">${opts.yLabel}</text>`);
+  return { x, y, body, W, H, m };
+}
+function svgWrap(W, H, inner, ariaLabel){
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="${esc(ariaLabel || "diagram")}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+}
+/* Vågrät referenslinje med etikett i högermarginalen */
+function refLine(f, val, color, label, dashed){
+  const yy = f.y(val);
+  if(yy < f.m.t - 6 || yy > f.H - f.m.b + 6) return "";
+  return `<line x1="${f.m.l}" y1="${yy}" x2="${f.W - f.m.r}" y2="${yy}" stroke="${color}" stroke-width="1.6" ${dashed ? 'stroke-dasharray="7 4"' : ""}/>` +
+         `<text x="${f.W - f.m.r + 6}" y="${yy + 3.5}" font-size="10" font-weight="bold" fill="${color}">${label}</text>`;
+}
+
+/* ---------- Histogram med normalkurva och toleransgränser ---------- */
+function histogramSVG(values, opts = {}){
+  const W = opts.width || 720, H = opts.height || 300;
+  const m = mean(values), s = sd(values);
+  const lo = Math.min(SPEC.lsl - 0.012, Math.min(...values) - 0.005);
+  const hi = Math.max(SPEC.usl + 0.012, Math.max(...values) + 0.005);
+  const nBins = Math.max(9, Math.min(17, Math.round(Math.sqrt(values.length) * 1.4)));
+  const bw = (hi - lo) / nBins;
+  const bins = new Array(nBins).fill(0);
+  for(const v of values){
+    let i = Math.floor((v - lo) / bw);
+    i = Math.max(0, Math.min(nBins - 1, i));
+    bins[i]++;
+  }
+  const peakCurve = values.length * bw * normPdf(m, m, s);
+  const yMax = Math.max(Math.max(...bins), peakCurve) * 1.15;
+  const f = chartFrame(W, H, [lo, hi], [0, yMax], {
+    xTicks: niceTicks(lo, hi, 7), xLabel: "diameter (mm)", yLabel: "antal", yDecimals: 0
+  });
+  // staplar
+  for(let i = 0; i < nBins; i++){
+    if(!bins[i]) continue;
+    const x0 = f.x(lo + i * bw), x1 = f.x(lo + (i + 1) * bw);
+    const binMid = lo + (i + 0.5) * bw;
+    const out = binMid < SPEC.lsl || binMid > SPEC.usl;
+    f.body.push(`<rect x="${x0 + 0.8}" y="${f.y(bins[i])}" width="${x1 - x0 - 1.6}" height="${f.y(0) - f.y(bins[i])}" fill="${out ? CHART.paleRed : CHART.paleBlue}" stroke="${out ? CHART.red : CHART.blue}" stroke-width="1.1"/>`);
+  }
+  // normalkurva
+  let d = "";
+  for(let i = 0; i <= 120; i++){
+    const xv = lo + (hi - lo) * i / 120;
+    const yv = values.length * bw * normPdf(xv, m, s);
+    d += (i ? "L" : "M") + f.x(xv).toFixed(1) + " " + f.y(Math.min(yv, yMax)).toFixed(1);
+  }
+  f.body.push(`<path d="${d}" fill="none" stroke="${CHART.teal}" stroke-width="2.2"/>`);
+  // toleransgränser + mål + medel
+  for(const [val, lab] of [[SPEC.lsl, "UTG"], [SPEC.usl, "ÖTG"]]){
+    f.body.push(`<line x1="${f.x(val)}" y1="${f.m.t}" x2="${f.x(val)}" y2="${f.y(0)}" stroke="${CHART.red}" stroke-width="2" stroke-dasharray="7 4"/>`);
+    f.body.push(`<text x="${f.x(val)}" y="${f.m.t - 5}" text-anchor="middle" font-size="10.5" font-weight="bold" fill="${CHART.red}">${lab}</text>`);
+  }
+  f.body.push(`<line x1="${f.x(SPEC.target)}" y1="${f.m.t}" x2="${f.x(SPEC.target)}" y2="${f.y(0)}" stroke="${CHART.faint}" stroke-width="1" stroke-dasharray="2 4"/>`);
+  f.body.push(`<line x1="${f.x(m)}" y1="${f.m.t + 8}" x2="${f.x(m)}" y2="${f.y(0)}" stroke="${CHART.blue}" stroke-width="2"/>`);
+  f.body.push(`<text x="${f.x(m)}" y="${f.m.t + 4}" text-anchor="middle" font-size="10.5" font-weight="bold" fill="${CHART.blue}">x̄</text>`);
+  return svgWrap(W, H, f.body.join(""), "Histogram över mätvärden med toleransgränser och anpassad normalkurva");
+}
+
+/* ---------- Individvärdesdiagram ---------- */
+function runChartSVG(values, opts = {}){
+  const W = opts.width || 720, H = opts.height || 280;
+  const lo = Math.min(SPEC.lsl - 0.008, Math.min(...values) - 0.004);
+  const hi = Math.max(SPEC.usl + 0.008, Math.max(...values) + 0.004);
+  const n = values.length;
+  const xt = niceTicks(1, n, Math.min(10, n));
+  const f = chartFrame(W, H, [0.5, n + 0.5], [lo, hi], {
+    xTicks: xt.filter(t => t >= 1 && Number.isInteger(t)), xDecimals: 0,
+    xLabel: opts.xLabel || "detalj nr", yLabel: "mm"
+  });
+  // skiftgränser
+  if(opts.boundaries){
+    for(const b of opts.boundaries){
+      f.body.push(`<line x1="${f.x(b + 0.5)}" y1="${f.m.t}" x2="${f.x(b + 0.5)}" y2="${f.H - f.m.b}" stroke="${CHART.grid}" stroke-width="1.4" stroke-dasharray="3 3"/>`);
+    }
+  }
+  if(opts.boundaryLabels){
+    for(const bl of opts.boundaryLabels){
+      f.body.push(`<text x="${f.x(bl.at)}" y="${f.m.t + 10}" text-anchor="middle" font-size="9" fill="${CHART.faint}">${esc(bl.text)}</text>`);
+    }
+  }
+  f.body.push(refLine(f, SPEC.usl, CHART.red, "ÖTG", true));
+  f.body.push(refLine(f, SPEC.lsl, CHART.red, "UTG", true));
+  f.body.push(refLine(f, SPEC.target, CHART.faint, "mål", true));
+  let d = "";
+  values.forEach((v, i) => { d += (i ? "L" : "M") + f.x(i + 1).toFixed(1) + " " + f.y(v).toFixed(1); });
+  f.body.push(`<path d="${d}" fill="none" stroke="${CHART.blue}" stroke-width="1.4" opacity=".75"/>`);
+  values.forEach((v, i) => {
+    const out = v < SPEC.lsl || v > SPEC.usl;
+    f.body.push(`<circle cx="${f.x(i + 1)}" cy="${f.y(v)}" r="${n > 120 ? 2 : 3}" fill="${out ? CHART.red : CHART.blue}"/>`);
+  });
+  return svgWrap(W, H, f.body.join(""), "Individvärdesdiagram med toleransgränser");
+}
+
+/* ---------- Styrdiagram (x̄ eller R) ---------- */
+function controlChartSVG(points, lim, opts = {}){
+  const W = opts.width || 720, H = opts.height || 260;
+  const sig = (lim.ucl - lim.cl) / 3;
+  const lo = Math.min(lim.lcl - sig * 0.8, Math.min(...points) - sig * 0.5);
+  const hi = Math.max(lim.ucl + sig * 0.8, Math.max(...points) + sig * 0.5);
+  const n = points.length;
+  const f = chartFrame(W, H, [0.5, n + 0.5], [lo, hi], {
+    xTicks: niceTicks(1, n, Math.min(10, n)).filter(t => Number.isInteger(t) && t >= 1),
+    xDecimals: 0, xLabel: "provgrupp nr", yLabel: opts.yLabel || "mm", margin: { r: 96 }
+  });
+  // zoner (C: 0–1σ, B: 1–2σ, A: 2–3σ)
+  if(opts.zones !== false){
+    const zoneCol = ["rgba(31,91,125,.10)", "rgba(31,91,125,.055)", "rgba(31,91,125,.02)"];
+    for(let zi = 0; zi < 3; zi++){
+      for(const sgn of [1, -1]){
+        const a = lim.cl + sgn * zi * sig, b = lim.cl + sgn * (zi + 1) * sig;
+        const yTop = f.y(Math.max(a, b)), yBot = f.y(Math.min(a, b));
+        f.body.push(`<rect x="${f.m.l}" y="${yTop}" width="${W - f.m.l - f.m.r}" height="${yBot - yTop}" fill="${zoneCol[zi]}"/>`);
+      }
+    }
+    for(const zi of [1, 2]){
+      for(const sgn of [1, -1]){
+        const yy = f.y(lim.cl + sgn * zi * sig);
+        f.body.push(`<line x1="${f.m.l}" y1="${yy}" x2="${W - f.m.r}" y2="${yy}" stroke="rgba(31,91,125,.25)" stroke-width="0.8" stroke-dasharray="2 4"/>`);
+      }
+    }
+  }
+  f.body.push(refLine(f, lim.ucl, CHART.blue, "ÖSG " + fmt(lim.ucl, opts.dec ?? 3)));
+  f.body.push(refLine(f, lim.cl, CHART.ink, "CL " + fmt(lim.cl, opts.dec ?? 3), true));
+  if(lim.lcl > lo || opts.showLcl !== false) f.body.push(refLine(f, lim.lcl, CHART.blue, "USG " + fmt(lim.lcl, opts.dec ?? 3)));
+  let d = "";
+  points.forEach((v, i) => { d += (i ? "L" : "M") + f.x(i + 1).toFixed(1) + " " + f.y(v).toFixed(1); });
+  f.body.push(`<path d="${d}" fill="none" stroke="${CHART.blue}" stroke-width="1.5"/>`);
+  const viol = opts.violations || points.map(() => []);
+  points.forEach((v, i) => {
+    const bad = opts.showViolations && viol[i] && viol[i].length;
+    f.body.push(`<circle cx="${f.x(i + 1)}" cy="${f.y(v)}" r="3.4" fill="${bad ? CHART.red : CHART.blue}"/>`);
+    if(bad){
+      f.body.push(`<circle cx="${f.x(i + 1)}" cy="${f.y(v)}" r="7" fill="none" stroke="${CHART.red}" stroke-width="1.6"/>`);
+      f.body.push(`<text x="${f.x(i + 1)}" y="${f.y(v) - 11}" text-anchor="middle" font-size="9" font-weight="bold" fill="${CHART.red}">${viol[i].join(",")}</text>`);
+    }
+  });
+  return svgWrap(W, H, f.body.join(""), "Styrdiagram med styrgränser" + (opts.showViolations ? " och markerade larm" : ""));
+}
+
+/* ---------- Normalfördelningswidget (moment 0) ---------- */
+function normalWidgetSVG(mu, sigma){
+  const W = 720, H = 300;
+  const lo = 24.90, hi = 25.10;
+  const peak = normPdf(0, 0, 0.004); // maxhöjd vid minsta σ → fast skala känns ryckfri? nej, skala om:
+  const yMax = normPdf(mu, mu, sigma) * 1.18;
+  const f = chartFrame(W, H, [lo, hi], [0, yMax], {
+    xTicks: [24.90, 24.95, 25.00, 25.05, 25.10], xDecimals: 2,
+    xLabel: "diameter (mm)", margin: { r: 30, l: 34 }, yTicks: []
+  });
+  const N = 260;
+  const pts = [];
+  for(let i = 0; i <= N; i++){
+    const xv = lo + (hi - lo) * i / N;
+    pts.push([xv, normPdf(xv, mu, sigma)]);
+  }
+  const path = pts.map((p, i) => (i ? "L" : "M") + f.x(p[0]).toFixed(1) + " " + f.y(Math.min(p[1], yMax)).toFixed(1)).join("");
+  // skuggade svansar utanför tolerans
+  function tailPath(from, to){
+    const seg = pts.filter(p => p[0] >= from && p[0] <= to);
+    if(seg.length < 2) return "";
+    let d2 = "M" + f.x(seg[0][0]).toFixed(1) + " " + f.y(0).toFixed(1);
+    for(const p of seg) d2 += "L" + f.x(p[0]).toFixed(1) + " " + f.y(Math.min(p[1], yMax)).toFixed(1);
+    d2 += "L" + f.x(seg[seg.length - 1][0]).toFixed(1) + " " + f.y(0).toFixed(1) + "Z";
+    return `<path d="${d2}" fill="${CHART.paleRed}" stroke="none"/>`;
+  }
+  f.body.push(tailPath(lo, SPEC.lsl));
+  f.body.push(tailPath(SPEC.usl, hi));
+  // kurvyta innanför
+  f.body.push(`<path d="${path}" fill="none" stroke="${CHART.teal}" stroke-width="2.6"/>`);
+  // toleransgränser
+  for(const [val, lab] of [[SPEC.lsl, "UTG 24,950"], [SPEC.usl, "ÖTG 25,050"]]){
+    f.body.push(`<line x1="${f.x(val)}" y1="${f.m.t}" x2="${f.x(val)}" y2="${f.y(0)}" stroke="${CHART.red}" stroke-width="2" stroke-dasharray="7 4"/>`);
+    f.body.push(`<text x="${f.x(val)}" y="${f.m.t - 5}" text-anchor="middle" font-size="10.5" font-weight="bold" fill="${CHART.red}">${lab}</text>`);
+  }
+  // mål + μ
+  f.body.push(`<line x1="${f.x(SPEC.target)}" y1="${f.m.t + 6}" x2="${f.x(SPEC.target)}" y2="${f.y(0)}" stroke="${CHART.faint}" stroke-width="1" stroke-dasharray="2 4"/>`);
+  f.body.push(`<line x1="${f.x(mu)}" y1="${f.y(normPdf(mu, mu, sigma))}" x2="${f.x(mu)}" y2="${f.y(0)}" stroke="${CHART.blue}" stroke-width="1.8"/>`);
+  f.body.push(`<text x="${f.x(mu)}" y="${f.y(0) + 14}" text-anchor="middle" font-size="11" font-weight="bold" fill="${CHART.blue}">μ</text>`);
+  // ±3σ-markering
+  f.body.push(`<line x1="${f.x(mu - 3 * sigma)}" y1="${f.y(0) - 8}" x2="${f.x(mu + 3 * sigma)}" y2="${f.y(0) - 8}" stroke="${CHART.teal}" stroke-width="1.4" marker-start="url(#arrL)" marker-end="url(#arrR)"/>`);
+  f.body.push(`<text x="${f.x(mu)}" y="${f.y(0) - 13}" text-anchor="middle" font-size="9.5" fill="${CHART.teal}">± 3σ = ${fmt(3 * sigma, 3)}</text>`);
+  const defs = `<defs>
+    <marker id="arrL" markerWidth="7" markerHeight="7" refX="3" refY="3" orient="auto"><path d="M6 0.5 L1 3 L6 5.5" fill="none" stroke="${CHART.teal}"/></marker>
+    <marker id="arrR" markerWidth="7" markerHeight="7" refX="4" refY="3" orient="auto"><path d="M1 0.5 L6 3 L1 5.5" fill="none" stroke="${CHART.teal}"/></marker>
+  </defs>`;
+  return svgWrap(W, H, defs + f.body.join(""), "Normalfördelning mot toleransgränserna");
+}
+
+/* ---------- Jämförelsestaplar för kapabilitetsindex ---------- */
+function indexBarsSVG(items, req){
+  const W = 720, H = 80 + items.length * 52;
+  const maxV = Math.max(2.2, ...items.map(i => i.value)) * 1.12;
+  const mL = 150, mR = 40, mT = 18, mB = 34;
+  const x = v => mL + v / maxV * (W - mL - mR);
+  const body = [];
+  for(const t of niceTicks(0, maxV, 6)){
+    body.push(`<line x1="${x(t)}" y1="${mT}" x2="${x(t)}" y2="${H - mB}" stroke="${CHART.grid}"/>`);
+    body.push(`<text x="${x(t)}" y="${H - mB + 15}" text-anchor="middle" font-size="10" fill="${CHART.faint}">${fmt(t, 1)}</text>`);
+  }
+  items.forEach((it, i) => {
+    const yy = mT + 14 + i * 52;
+    const ok = it.req !== undefined ? it.value >= it.req : null;
+    const col = ok === null ? CHART.blue : ok ? CHART.green : CHART.red;
+    body.push(`<text x="${mL - 10}" y="${yy + 15}" text-anchor="end" font-size="12" font-weight="bold" fill="${CHART.ink}">${esc(it.label)}</text>`);
+    body.push(`<rect x="${mL}" y="${yy}" width="${Math.max(2, x(it.value) - mL)}" height="22" fill="${col}" opacity=".85" rx="1"/>`);
+    body.push(`<text x="${x(it.value) + 7}" y="${yy + 15}" font-size="12" font-weight="bold" fill="${col}">${fmt(it.value, 2)}</text>`);
+    if(it.note) body.push(`<text x="${mL}" y="${yy + 36}" font-size="9.5" fill="${CHART.faint}">${esc(it.note)}</text>`);
+  });
+  if(req !== undefined){
+    body.push(`<line x1="${x(req)}" y1="${mT - 4}" x2="${x(req)}" y2="${H - mB}" stroke="${CHART.amber}" stroke-width="2" stroke-dasharray="6 4"/>`);
+    body.push(`<text x="${x(req)}" y="${mT - 7}" text-anchor="middle" font-size="10" font-weight="bold" fill="${CHART.amber}">krav ${fmt(req, 2)}</text>`);
+  }
+  body.push(`<line x1="${mL}" y1="${H - mB}" x2="${W - mR}" y2="${H - mB}" stroke="${CHART.ink}" stroke-width="1.4"/>`);
+  return svgWrap(W, H, body.join(""), "Jämförelse av kapabilitetsindex");
+}
+
+/* ---------- Variansstaplar (moment 4) ---------- */
+function varianceBarsSVG(components){
+  const W = 720, H = 60 + components.length * 44;
+  const maxV = Math.max(...components.map(c => Math.max(c.before, c.after))) * 1.15;
+  const mL = 235, mR = 90, mT = 26, mB = 10;
+  const x = v => mL + v / maxV * (W - mL - mR);
+  const body = [];
+  body.push(`<text x="${mL}" y="14" font-size="9.5" fill="${CHART.faint}">standardavvikelse per variationskälla (mm) — grå = före, blå = efter åtgärd</text>`);
+  components.forEach((c, i) => {
+    const yy = mT + 10 + i * 44;
+    body.push(`<text x="${mL - 10}" y="${yy + 14}" text-anchor="end" font-size="11" fill="${CHART.ink}">${esc(c.label)}</text>`);
+    body.push(`<rect x="${mL}" y="${yy}" width="${Math.max(1.5, x(c.before) - mL)}" height="9" fill="${CHART.faint}" opacity=".55"/>`);
+    body.push(`<rect x="${mL}" y="${yy + 11}" width="${Math.max(1.5, x(c.after) - mL)}" height="9" fill="${CHART.blue}"/>`);
+    body.push(`<text x="${x(Math.max(c.before, c.after)) + 7}" y="${yy + 17}" font-size="10" fill="${CHART.ink}">${fmt(c.after * 1000, 1)} µm</text>`);
+  });
+  return svgWrap(W, H, body.join(""), "Variationskällor före och efter åtgärd");
+}
+</script>
+<script>
+"use strict";
+/* ============================================================
+   DEL 2 · APPLIKATION — tillstånd, quiz, moment 0–1
+   ============================================================ */
+
+/* ---------- Tillstånd & lagring ---------- */
+const STORE_KEY = "spc-lab-v1";
+function defaultState(){
+  return {
+    studentName: "",
+    started: false,
+    current: 0,
+    unlocked: [true, false, false, false, false, true], // index 5 = rapporten (alltid öppen)
+    quizPassed: {}, quizAnswers: {}, reflections: {},
+    m0: { muMoved: false, sigmaMoved: false },
+    m1: { streamCount: 0, offset: 0, values: [], runs: [], recorded: false, passed: false },
+    m2: { phase1: null, scenarios: {}, order: null },
+    m3: { shifts: 0, values: [], done: false },
+    m4: { selected: ["center"], attempts: [], passed: false }
+  };
+}
+let state = defaultState();
+function saveState(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){ /* privat läge m.m. */ }
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw) state = Object.assign(defaultState(), JSON.parse(raw));
+  }catch(e){ state = defaultState(); }
+}
+
+/* ---------- Dolda simuleringsparametrar (unika per student) ---------- */
+let P = null;
+function computeHiddenParams(){
+  const r = makeRng("dolda-parametrar");
+  const sigmaM = 0.0060 + r() * 0.0015;                    // maskinens egen spridning
+  const sign = r() < 0.5 ? -1 : 1;
+  const m1offset = sign * (SPEC.tol / 2 - 3 * sigmaM * (1.20 + r() * 0.25)); // ger Cmk ≈ 1,20–1,45 initialt
+  P = {
+    sigmaM,
+    m1offset,
+    residShift: 0.005 + r() * 0.004,   // kvarvarande lägesfel efter omställningar (moment 3)
+    batchSigma: 0.0110 + r() * 0.0010, // materialpartier, per skift
+    tempAmp: 0.005,                    // uppvärmningsdrift vid skiftstart
+    wearSlope: 0.0008                  // verktygsslitage per detalj
+  };
+}
+
+/* ---------- Quizbank ---------- */
+const QUIZ = {
+  m0: {
+    title: "Kontrollfrågor · Moment 0",
+    qs: [
+      { q: "Vad beskriver toleransgränserna UTG och ÖTG?",
+        opts: ["Processens naturliga variation, beräknad ur mätdata",
+               "Kundens/ritningens krav på varje enskild detalj",
+               "Larmgränser som visar när processen förändrats",
+               "Mätinstrumentets osäkerhet"],
+        correct: 1,
+        explain: "Toleransgränserna kommer från ritningen och är kundens röst: varje enskild detalj måste ligga mellan UTG och ÖTG för att duga. De säger ingenting om hur processen faktiskt beter sig — det gör styrgränserna." },
+      { q: "En process är perfekt centrerad (μ = 25,000 mm) men kasserar ändå många detaljer. Vad krävs?",
+        opts: ["Justera verktygsoffseten så läget flyttas",
+               "Minska processens spridning, t.ex. genom att förbättra maskin eller metod",
+               "Flytta toleransgränserna utåt",
+               "Mäta fler detaljer så blir resultatet bättre"],
+        correct: 1,
+        explain: "Läget är redan perfekt — problemet är spridningen (σ). Att flytta läget hjälper inte, och varken vidgade toleranser (kundens krav!) eller fler mätningar ändrar processen. Spridning minskas bara genom att förbättra processen själv." },
+      { q: "Ungefär hur stor andel av värdena från en normalfördelad process hamnar inom μ ± 3σ?",
+        opts: ["68,3 %", "95,4 %", "99,73 %", "100 %"],
+        correct: 2,
+        explain: "Tumregeln: ±1σ ≈ 68,3 %, ±2σ ≈ 95,4 %, ±3σ ≈ 99,73 %. Det är därför både styrgränser och kapabilitetsindex byggs på just 3σ." },
+      { q: "Din restid till skolan varierar normalt ±5 minuter. En dag är vägen avstängd och det tar 30 minuter extra. Vägavstängningen är ett exempel på…",
+        opts: ["en slumpmässig orsak", "en urskiljbar orsak", "naturlig variation", "ett mätfel"],
+        correct: 1,
+        explain: "En enskild, identifierbar händelse som förändrar utfallet är en urskiljbar (speciell) orsak — precis det som ett styrdiagram är byggt för att upptäcka. De dagliga ±5 minuterna är processens naturliga variation." }
+    ]
+  },
+  m1: {
+    title: "Kontrollfrågor · Moment 1",
+    qs: [
+      { q: "Varför tillverkas detaljerna i en obruten följd, utan justeringar, vid en maskinkapabilitetsstudie?",
+        opts: ["Det går fortast så",
+               "För att verktygsslitaget ska hinna synas i mätvärdena",
+               "För att utestänga yttre variationskällor så att nästan bara maskinens egen spridning mäts",
+               "För att operatören inte ska hinna göra fel"],
+        correct: 2,
+        explain: "Studien ska isolera maskinens egen förmåga. Kör man kort tid, med ett materialparti och utan justeringar, hinner temperaturdrift, slitage och partibyten inte påverka — kvar blir maskinens egen spridning." },
+      { q: "En studie ger Cₘ = 2,4 men Cₘₖ = 1,1. Vad betyder det?",
+        opts: ["Maskinen har för stor spridning",
+               "Maskinen har liten spridning men är felcentrerad i toleransen",
+               "Maskinen är instabil över tid",
+               "Mätdonet är trasigt"],
+        correct: 1,
+        explain: "Cₘ ser bara spridningen — 2,4 betyder att toleransen rymmer spridningen med god marginal. Att Cₘₖ ändå är lågt kan bara bero på läget: medelvärdet ligger för nära ena toleransgränsen. Botemedlet är enkelt — centrera maskinen." },
+      { q: "Varför sätts kravet på maskinkapabilitet (≥ 1,67) högre än kravet på processkapabilitet (≥ 1,33)?",
+        opts: ["Maskiner är dyrare än processer",
+               "Maskinen är bara en av processens variationskällor — det behövs marginal för alla övriga",
+               "1,67 är lättare att mäta än 1,33",
+               "Det är ett myndighetskrav"],
+        correct: 1,
+        explain: "I den verkliga processen tillkommer material, operatörer, temperatur, slitage med mera. Om maskinen ensam knappt klarar kraven finns ingen marginal kvar när övriga källor adderas — därför kravet 1,67 på maskinnivå." },
+      { q: "Din studie gav x̄ = 25,018 mm (mål 25,000). Nuvarande verktygsoffset är +0,010 mm. Vilken ny offset centrerar maskinen?",
+        opts: ["−0,018 mm", "−0,008 mm", "+0,008 mm", "0,000 mm"],
+        correct: 1,
+        explain: "Maskinen ligger 0,018 mm för högt, så offseten ska minskas med 0,018: ny offset = +0,010 − 0,018 = −0,008 mm. Klassisk fälla: att glömma att justeringen sker relativt nuvarande inställning." }
+    ]
+  },
+  m2: {
+    title: "Kontrollfrågor · Moment 2",
+    qs: [
+      { q: "En punkt hamnar utanför den övre styrgränsen i x̄-diagrammet, men alla detaljer i provgruppen ligger innanför toleransen. Vad är rätt slutsats?",
+        opts: ["Allt är bra — inga detaljer kasserades",
+               "Sannolikt har en urskiljbar orsak påverkat processen: undersök vad som hänt",
+               "Styrgränserna är fel beräknade",
+               "Toleransen bör minskas"],
+        correct: 1,
+        explain: "Styrgränserna beskriver processens naturliga variation — en punkt utanför är osannolik (< 0,3 %) om processen är oförändrad. Larmet gäller processen, inte detaljerna: agera innan skrotet kommer. Det är hela poängen med SPC." },
+      { q: "Vad är den avgörande skillnaden mellan styrgränser och toleransgränser?",
+        opts: ["Styrgränser är alltid snävare",
+               "Styrgränser beräknas ur processens egna data och gäller det som plottas (t.ex. provgruppsmedelvärden); toleransgränser är krav på enskilda detaljer",
+               "Toleransgränser används bara vid slutkontroll",
+               "Ingen — de är olika namn på samma sak"],
+        correct: 1,
+        explain: "Styrgränserna är processens röst (beräknade ur data, gäller t.ex. x̄), toleransgränserna kundens röst (gäller varje detalj). De ska aldrig ritas i samma diagram utan eftertanke — x̄ varierar mycket mindre än enskilda värden." },
+      { q: "Varför används både ett x̄-diagram och ett R-diagram?",
+        opts: ["För säkerhets skull — de visar samma sak",
+               "x̄-diagrammet övervakar processens läge och R-diagrammet dess spridning",
+               "R-diagrammet behövs bara vid stora provgrupper",
+               "x̄-diagrammet är för operatören, R-diagrammet för chefen"],
+        correct: 1,
+        explain: "En process kan gå fel på två sätt: läget flyttar sig (syns i x̄) eller spridningen ökar (syns i R). Ett nivåskifte kan ge larm i x̄ utan att R påverkas — och tvärtom. Båda behövs." },
+      { q: "Åtta punkter i följd ligger över centrallinjen i x̄-diagrammet, men alla innanför styrgränserna. Vad gäller?",
+        opts: ["Ingen åtgärd — inga punkter utanför gränserna",
+               "Larm: ett så långt mönster på samma sida är mycket osannolikt av en slump — läget har troligen förskjutits",
+               "Styrgränserna ska räknas om",
+               "Provgruppsstorleken ska ökas"],
+        correct: 1,
+        explain: "Sannolikheten för 8 i följd på samma sida är (1/2)⁸ ≈ 0,4 % om processen är oförändrad. Mönsterreglerna (Western Electric) finns just för att fånga sådana smygande förändringar som aldrig ger punkter utanför 3σ." }
+    ]
+  },
+  m3: {
+    title: "Kontrollfrågor · Moment 3",
+    qs: [
+      { q: "Varför blir Cₚ i praktiken alltid lägre än Cₘ för samma process?",
+        opts: ["Formeln har en annan konstant",
+               "Långtidsdata innehåller fler variationskällor (material, slitage, temperatur, omställningar) och ger därför större total spridning",
+               "Man mäter med sämre instrument i produktion",
+               "Cₚ beräknas på färre mätvärden"],
+        correct: 1,
+        explain: "Samma formel, annat data: i den korta maskinstudien syns nästan bara maskinens spridning, men över en vecka bidrar alla processens variationskällor. Eftersom s står i nämnaren sjunker indexet." },
+      { q: "En process har Cₚ = 1,5 men Cₚₖ = 0,9. Vad är den effektivaste första åtgärden?",
+        opts: ["Minska processens spridning",
+               "Centrera processen — spridningen ryms redan i toleransen",
+               "Öka provgruppsstorleken",
+               "Byta ut maskinen"],
+        correct: 1,
+        explain: "Gapet mellan Cₚ och Cₚₖ beror uteslutande på dålig centrering. Spridningen är redan tillräckligt liten (Cₚ = 1,5) — flytta läget till toleransmitten, ofta en ren inställningsfråga, nästan gratis." },
+      { q: "Vilket index säger mest om hur stor andel felaktiga detaljer processen faktiskt producerar?",
+        opts: ["Cₚ — det jämför tolerans med spridning",
+               "Cₚₖ — det tar hänsyn till både spridning och läge",
+               "Cₘ — det är strängast",
+               "R̄ — variationsvidden"],
+        correct: 1,
+        explain: "Felandelen bestäms av avståndet från processens läge till närmaste toleransgräns, mätt i standardavvikelser — exakt vad Cₚₖ fångar. Cₚ kan vara utmärkt samtidigt som processen gör 100 % skrot (om den ligger helt fel)." },
+      { q: "Vilket villkor bör vara uppfyllt för att kapabilitetsindexen ska vara meningsfulla?",
+        opts: ["Att processen är i statistisk jämvikt (stabil) under studien",
+               "Att alla mätvärden ligger inom toleransen",
+               "Att exakt 250 detaljer mäts",
+               "Att Cₚ > Cₚₖ"],
+        correct: 0,
+        explain: "Kapabilitet förutsätter förutsägbarhet. Är processen instabil (urskiljbara orsaker verkar) beskriver x̄ och s bara just den studerade perioden — nästa vecka kan bli helt annorlunda. Stabilitet först (moment 2), kapabilitet sedan." }
+    ]
+  },
+  m4: {
+    title: "Kontrollfrågor · Moment 4",
+    qs: [
+      { q: "Två oberoende variationskällor har σ₁ = 0,010 mm och σ₂ = 0,004 mm (totalt σ = √(σ₁²+σ₂²) ≈ 0,0108). Källa 2 elimineras helt. Nya totala σ?",
+        opts: ["0,006 mm — de subtraheras",
+               "0,010 mm — totalen minskar bara marginellt",
+               "0,0054 mm — den halveras",
+               "0,0108 mm — oförändrad"],
+        correct: 1,
+        explain: "Standardavvikelser adderas kvadratiskt: kvar blir √(0,010²) = 0,010 mm. Att helt utplåna den lilla källan gav bara 0,8 µm! Slutsats: jaga alltid den största källan — små källor är sällan värda pengarna." },
+      { q: "Vilken är normalt den klokaste ordningen i förbättringsarbetet?",
+        opts: ["Köp ny maskin först — den syns i budgeten",
+               "Centrera läget först (ofta nästan gratis), angrip därefter den största spridningskällan",
+               "Minska den billigaste källan först oavsett storlek",
+               "Öka kontrollen: mät alla detaljer"],
+        correct: 1,
+        explain: "Ett lägesfel kostar kapabilitet precis lika mycket som spridning men åtgärdas ofta med en enkel justering. Därefter ger kvadratisk addition att största spridningskällan är den enda som ger stor utväxling. 100 % kontroll förbättrar inte processen alls." },
+      { q: "Varför avslutas förbättringsarbetet med en ny, verifierande kapabilitetsstudie?",
+        opts: ["För att dokumentationen kräver det",
+               "Utan ny mätning vet vi inte om åtgärderna gav avsedd effekt — beslut ska bygga på data, inte förhoppningar",
+               "För att styrgränserna måste flyttas",
+               "För att operatörerna ska öva"],
+        correct: 1,
+        explain: "Detta är Studera-steget i PDCA: en åtgärd är en hypotes tills data bekräftat den. Verifieringen visar dessutom de nya styrgränser och den nya kapabilitet som gäller framåt." },
+      { q: "Processens största spridningskälla är materialvariationen. En dyr uppgradering av maskinen (som redan har Cₘ = 2,4) skulle…",
+        opts: ["lösa problemet — maskinen är alltid viktigast",
+               "ge liten effekt, eftersom totalspridningen domineras av materialet och källorna adderas kvadratiskt",
+               "fördubbla kapabiliteten",
+               "sänka Cₚ"],
+        correct: 1,
+        explain: "Maskinen är redan utmärkt; dess bidrag till totala σ är litet. Pengarna gör störst nytta där variationen faktiskt uppstår — här hos materialet. (Kände du igen situationen från din egen budget?)" }
+    ]
+  }
+};
+
+const REFLECT = {
+  m0: "Beskriv med egna ord skillnaden mellan slumpmässiga och urskiljbara orsaker till variation. Ge ett eget exempel (gärna utanför verkstaden).",
+  m1: "Varför räcker det inte att bara beräkna Cₘ? Beskriv vad som hände i din studie och hur du resonerade när du justerade maskinen.",
+  m2: "Varför behövs larmregler för mönster (t.ex. åtta punkter på samma sida) när vi redan larmar för punkter utanför styrgränserna? Koppla till vad du såg i veckorna A–D.",
+  m3: "Jämför ditt Cₘ från moment 1 med ditt Cₚ. Vilka variationskällor tror du bidrog mest till skillnaden — och var i diagrammen såg du spår av dem?",
+  m4: "Vilka åtgärder valde du och varför? Vad hade du prioriterat om budgeten varit hälften så stor? Koppla till hur standardavvikelser adderas."
+};
+
+/* ---------- Quizmotor ----------
+   Kontrollfrågorna är gråade/låsta tills momentets uppgift är avklarad,
+   så att studenten laborerar innan hen svarar. */
+const QUIZ_MOMENT = { m0: 0, m1: 1, m2: 2, m3: 3, m4: 4 };
+const quizLockRendered = {};
+function renderQuiz(mKey){
+  const bank = QUIZ[mKey];
+  const host = el("quiz-" + mKey);
+  if(!host) return;
+  const locked = !taskDone(QUIZ_MOMENT[mKey]);
+  quizLockRendered[mKey] = locked;
+  const saved = state.quizAnswers[mKey] || [];
+  const passed = !!state.quizPassed[mKey];
+  const dis = locked ? "disabled" : "";
+  let html = `<div class="quiz${locked ? " locked" : ""}"><h3>${esc(bank.title)}</h3>
+    <p class="quiz-sub">Alla frågor måste besvaras rätt för att momentet ska bli godkänt. Du kan ändra dina svar och rätta igen.</p>`;
+  if(locked){
+    html += `<div class="quiz-lock-note">🔒 <strong>Låst.</strong> Kontrollfrågorna blir tillgängliga
+      när uppgiften i momentet är avklarad: <em>${esc(TASK_LABEL[QUIZ_MOMENT[mKey]])}</em>.</div>`;
+  }
+  bank.qs.forEach((item, qi) => {
+    html += `<div class="quiz-q"><div class="q-text"><span class="q-no">${qi + 1}.</span>${esc(item.q)}</div><div class="answer-options">`;
+    item.opts.forEach((opt, oi) => {
+      const checked = saved[qi] === oi ? "checked" : "";
+      html += `<label id="q-${mKey}-${qi}-${oi}"><input type="radio" name="q-${mKey}-${qi}" value="${oi}" ${checked} ${dis}> <span>${esc(opt)}</span></label>`;
+    });
+    html += `</div><div class="q-explain" id="qe-${mKey}-${qi}"></div></div>`;
+  });
+  html += `<div class="btn-row"><button class="btn primary" id="quiz-check-${mKey}" ${dis}>Rätta quizet</button>
+    <span class="quiz-result" id="quiz-res-${mKey}">${passed ? "✔ Quizet är godkänt." : ""}</span></div></div>`;
+  host.innerHTML = html;
+  el("quiz-check-" + mKey).addEventListener("click", () => checkQuiz(mKey));
+  if(passed) el("quiz-res-" + mKey).style.color = "var(--green)";
+}
+function checkQuiz(mKey){
+  const bank = QUIZ[mKey];
+  const answers = [];
+  let allAnswered = true, allCorrect = true;
+  bank.qs.forEach((item, qi) => {
+    const sel = document.querySelector(`input[name="q-${mKey}-${qi}"]:checked`);
+    const choice = sel ? Number(sel.value) : null;
+    answers[qi] = choice;
+    const exp = el(`qe-${mKey}-${qi}`);
+    // rensa markeringar
+    item.opts.forEach((_, oi) => {
+      const lab = el(`q-${mKey}-${qi}-${oi}`);
+      lab.classList.remove("correct", "wrong");
+    });
+    if(choice === null){
+      allAnswered = false; allCorrect = false;
+      exp.className = "q-explain nok show";
+      exp.textContent = "Frågan är inte besvarad.";
+      return;
+    }
+    if(choice === item.correct){
+      el(`q-${mKey}-${qi}-${choice}`).classList.add("correct");
+      exp.className = "q-explain ok show";
+      exp.innerHTML = "<strong>Rätt.</strong> " + esc(item.explain);
+    }else{
+      allCorrect = false;
+      el(`q-${mKey}-${qi}-${choice}`).classList.add("wrong");
+      exp.className = "q-explain nok show";
+      exp.textContent = "Inte rätt — fundera en gång till. Ledtråd: läs teorirutan i momentet.";
+    }
+  });
+  state.quizAnswers[mKey] = answers;
+  const res = el("quiz-res-" + mKey);
+  if(allCorrect){
+    state.quizPassed[mKey] = true;
+    res.textContent = "✔ Alla rätt — quizet är godkänt!";
+    res.style.color = "var(--green)";
+  }else{
+    res.textContent = allAnswered ? "Något svar är fel — justera och rätta igen." : "Besvara alla frågor och rätta igen.";
+    res.style.color = "var(--red)";
+  }
+  saveState();
+  updateGates();
+}
+
+/* ---------- Reflektionsfält ---------- */
+function renderReflect(mKey){
+  const host = el("reflect-" + mKey);
+  if(!host) return;
+  const saved = state.reflections[mKey] || "";
+  host.innerHTML = `<div class="card reflect"><h3><span class="tag" style="background:var(--teal)">Reflektera</span>Till labrapporten</h3>
+    <p>${esc(REFLECT[mKey])}</p>
+    <textarea id="reflect-txt-${mKey}" placeholder="Skriv din reflektion här — den följer med i labrapporten.">${esc(saved)}</textarea>
+    <div class="btn-row"><button class="btn" id="reflect-save-${mKey}">Spara reflektion</button><span class="saved-note" id="reflect-note-${mKey}">✔ Sparad</span></div></div>`;
+  el("reflect-save-" + mKey).addEventListener("click", () => {
+    state.reflections[mKey] = el("reflect-txt-" + mKey).value;
+    saveState();
+    const note = el("reflect-note-" + mKey);
+    note.classList.add("show");
+    setTimeout(() => note.classList.remove("show"), 2200);
+  });
+}
+
+/* ---------- Momentens uppgiftsstatus & grindar ---------- */
+function taskDone(m){
+  switch(m){
+    case 0: return !!(state.m0 && state.m0.muMoved && state.m0.sigmaMoved);
+    case 1: return state.m1.passed;
+    case 2: return !!state.m2.phase1 && ["A", "B", "C", "D"].every(id => state.m2.scenarios[id] && state.m2.scenarios[id].answered);
+    case 3: return state.m3.done;
+    case 4: return state.m4.passed;
+  }
+  return false;
+}
+const TASK_LABEL = {
+  0: "Utforska normalfördelningswidgeten (dra i båda reglagen)",
+  1: "Godkänd maskinkapabilitetsstudie (Cₘ och Cₘₖ ≥ 1,67)",
+  2: "Styrgränser upprättade och alla fyra veckor bedömda",
+  3: "Produktionsveckan genomförd och Cₚ/Cₚₖ beräknade",
+  4: "Verifierad förbättring (Cₚₖ ≥ 1,33)"
+};
+function updateGates(){
+  // lås upp (eller lås) kontrollfrågorna när uppgiftsstatusen ändrats
+  Object.keys(QUIZ_MOMENT).forEach(k => {
+    const locked = !taskDone(QUIZ_MOMENT[k]);
+    if(quizLockRendered[k] !== undefined && quizLockRendered[k] !== locked) renderQuiz(k);
+  });
+  for(let m = 0; m <= 4; m++){
+    const gate = el("gate-m" + m);
+    if(!gate) continue;
+    const task = taskDone(m), quiz = !!state.quizPassed["m" + m];
+    const ready = task && quiz;
+    const nextName = m < 4 ? `moment ${m + 1}` : "labrapporten";
+    let html = `<div class="gate-status">`;
+    if(m > 0 || true){
+      html += `<div>${task ? '<span class="done">✔</span>' : '<span class="todo">○</span>'} ${esc(TASK_LABEL[m])}</div>`;
+      html += `<div>${quiz ? '<span class="done">✔</span>' : '<span class="todo">○</span>'} Kontrollfrågorna godkända</div>`;
+    }
+    html += `</div><button class="btn primary big" ${ready ? "" : "disabled"} data-goto="${m + 1}">Fortsätt till ${nextName} →</button>`;
+    gate.innerHTML = html;
+    const btn = gate.querySelector("button");
+    btn.addEventListener("click", () => {
+      state.unlocked[m + 1] = true;
+      saveState();
+      showMoment(m + 1);
+    });
+    if(ready) state.unlocked[m + 1] = state.unlocked[m + 1] || false; // upplåsning sker vid klick
+  }
+  updateStepper();
+}
+
+/* ---------- Navigering ---------- */
+function updateStepper(){
+  document.querySelectorAll(".step-btn[data-moment]").forEach(btn => {
+    const m = Number(btn.dataset.moment);
+    btn.disabled = !state.unlocked[m];
+    btn.classList.toggle("active", m === state.current);
+    const done = m <= 4 ? (taskDone(m) && state.quizPassed["m" + m]) : false;
+    btn.classList.toggle("done", done);
+    const existing = btn.querySelector(".lock");
+    if(!state.unlocked[m] && !existing){
+      const s = document.createElement("span"); s.className = "lock"; s.textContent = "🔒";
+      btn.appendChild(s);
+    }else if(state.unlocked[m] && existing){ existing.remove(); }
+  });
+}
+function showMoment(m){
+  state.current = m;
+  saveState();
+  document.querySelectorAll(".moment").forEach(sec => sec.classList.remove("visible"));
+  const id = m === 5 ? "moment-report" : "moment-" + m;
+  el(id).classList.add("visible");
+  if(m === 5) renderReport();
+  updateStepper();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ============================================================
+   MOMENT 0 — normalfördelningswidgeten
+   ============================================================ */
+function initM0(){
+  const update = () => {
+    const mu = Number(el("m0-mu").value);
+    const sigma = Number(el("m0-sigma").value);
+    el("m0-mu-out").textContent = fmt(mu, 3);
+    el("m0-sigma-out").textContent = fmt(sigma, 3);
+    el("m0-widget").innerHTML = normalWidgetSVG(mu, sigma);
+    const ppm = ppmOutside(mu, sigma);
+    el("m0-ppm").textContent = fmtPpm(ppm);
+    el("m0-pct").textContent = fmt(ppm / 1e4, ppm / 1e4 < 0.1 ? 3 : 2);
+    el("m0-dist-u").textContent = fmt((SPEC.usl - mu) / sigma, 2);
+    el("m0-dist-l").textContent = fmt((mu - SPEC.lsl) / sigma, 2);
+  };
+  const track = which => {
+    if(!state.m0[which]){
+      state.m0[which] = true;
+      saveState();
+      updateGates();
+    }
+  };
+  el("m0-mu").addEventListener("input", () => { update(); track("muMoved"); });
+  el("m0-sigma").addEventListener("input", () => { update(); track("sigmaMoved"); });
+  update();
+}
+
+/* ============================================================
+   MOMENT 1 — maskinkapabilitet
+   ============================================================ */
+function m1Measure(rng){
+  const v = SPEC.target + P.m1offset + state.m1.offset + rng.gauss() * P.sigmaM;
+  return Math.round(v * 1000) / 1000;
+}
+function m1Make(count){
+  const m1 = state.m1;
+  if(m1.values.length >= 50) return;
+  count = Math.min(count, 50 - m1.values.length);
+  // en rng-ström per studie, spolas fram till rätt position
+  const rng = makeRng("m1-studie-" + m1.streamCount);
+  for(let i = 0; i < m1.values.length; i++){ rng.gauss(); } // återspela redan dragna
+  const newVals = [];
+  for(let i = 0; i < count; i++){
+    const v = m1Measure(rng);
+    m1.values.push(v);
+    newVals.push(v);
+  }
+  saveState();
+  renderM1Feed(newVals);
+  renderM1Status();
+  if(m1.values.length >= 50){
+    setTimeout(() => { finishM1Study(); }, count * 60 + 250);
+  }
+}
+function renderM1Feed(newVals){
+  const feed = el("m1-feed");
+  const startIdx = state.m1.values.length - newVals.length;
+  newVals.forEach((v, i) => {
+    const chip = document.createElement("span");
+    const out = v < SPEC.lsl || v > SPEC.usl;
+    chip.className = "measure-chip" + (out ? " out" : "");
+    chip.style.animationDelay = (i * 55) + "ms";
+    chip.textContent = "#" + (startIdx + i + 1) + " · " + fmt(v, 3);
+    feed.appendChild(chip);
+  });
+  // håll flödet lagom långt
+  while(feed.children.length > 60) feed.removeChild(feed.firstChild);
+}
+function renderM1Status(){
+  el("m1-counter").textContent = state.m1.values.length + " / 50 axlar";
+  const done = state.m1.values.length >= 50;
+  el("m1-make1").disabled = done;
+  el("m1-make10").disabled = done;
+}
+function finishM1Study(){
+  const m1 = state.m1;
+  if(m1.values.length < 50) return;
+  if(!m1.recorded){
+    const c = capability(m1.values);
+    const pass = c.cp >= 1.67 && c.cpk >= 1.67;
+    m1.runs.push({ offset: m1.offset, mean: c.mean, sd: c.sd, cm: c.cp, cmk: c.cpk, pass });
+    m1.recorded = true;
+    if(pass) m1.passed = true;
+    saveState();
+  }
+  renderM1Results();
+  el("m1-adjust-card").style.display = "block";
+  el("m1-offset").value = m1.offset;
+  el("m1-offset-out").textContent = fmtSigned(m1.offset, 3);
+  updateGates();
+}
+function capFormulaHTML(c, req, prefix){ // prefix: "m" för Cm/Cmk, "p" för Cp/Cpk
+  const sub = prefix === "m" ? "m" : "p";
+  const cName = "C<sub>" + sub + "</sub>", ckName = "C<sub>" + sub + "k</sub>";
+  const vCm = c.cp, vCmk = c.cpk;
+  const clsCm = vCm >= req ? "good" : "bad";
+  const clsCmk = vCmk >= req ? "good" : "bad";
+  const upper = (SPEC.usl - c.mean) / (3 * c.sd), lower = (c.mean - SPEC.lsl) / (3 * c.sd);
+  const minIsUpper = upper <= lower;
+  return `<div class="formula-block">
+    <span class="f-title">Beräkning med dina mätvärden &nbsp;(x̄ = <span class="c-mean">${fmt(c.mean)}</span>, s = <span class="c-sd">${fmt(c.sd, 4)}</span>)</span>
+    <div class="formula">${cName} <span class="f-eq">=</span>
+      <span class="frac"><span class="top"><span class="c-usl">${fmt(SPEC.usl)}</span> − <span class="c-lsl">${fmt(SPEC.lsl)}</span></span><span class="bot">6 · <span class="c-sd">${fmt(c.sd, 4)}</span></span></span>
+      <span class="f-eq">=</span>
+      <span class="frac"><span class="top">${fmt(SPEC.tol)}</span><span class="bot">${fmt(6 * c.sd, 4)}</span></span>
+      <span class="f-eq">=</span> <span class="f-res ${clsCm}">${fmt(vCm, 2)}</span>
+      <span style="font-size:.85em;color:var(--ink-faint)">krav ≥ ${fmt(req, 2)} → ${vCm >= req ? "godkänt" : "ej godkänt"}</span>
+    </div>
+    <div class="formula">${ckName} <span class="f-eq">=</span> min<span style="font-size:1.5em">(</span>
+      <span class="frac"><span class="top"><span class="c-usl">${fmt(SPEC.usl)}</span> − <span class="c-mean">${fmt(c.mean)}</span></span><span class="bot">3 · <span class="c-sd">${fmt(c.sd, 4)}</span></span></span>,
+      <span class="frac"><span class="top"><span class="c-mean">${fmt(c.mean)}</span> − <span class="c-lsl">${fmt(SPEC.lsl)}</span></span><span class="bot">3 · <span class="c-sd">${fmt(c.sd, 4)}</span></span></span>
+      <span style="font-size:1.5em">)</span>
+      <span class="f-eq">=</span> min(${fmt(upper, 2)}, ${fmt(lower, 2)})
+      <span class="f-eq">=</span> <span class="f-res ${clsCmk}">${fmt(vCmk, 2)}</span>
+      <span style="font-size:.85em;color:var(--ink-faint)">krav ≥ ${fmt(req, 2)} → ${vCmk >= req ? "godkänt" : "ej godkänt"}</span>
+    </div>
+    <p class="f-note">Den ${minIsUpper ? "övre" : "undre"} kvoten är minst — processen ligger närmast ${minIsUpper ? "övre" : "undre"} toleransgränsen${Math.abs(vCm - vCmk) > 0.15 ? ", vilket avslöjar en felcentrering" : ""}.</p>
+  </div>`;
+}
+function statsStripHTML(c, idPrefix){
+  return `<div class="readout-strip">
+    <div class="readout"><span class="r-label">Antal n</span><span class="r-value">${c.n}</span></div>
+    <div class="readout"><span class="r-label">Medelvärde x̄</span><span class="r-value" style="color:var(--blue)">${fmt(c.mean)}</span><span class="r-unit">mm</span></div>
+    <div class="readout"><span class="r-label">Std.avvikelse s</span><span class="r-value" style="color:var(--teal)">${fmt(c.sd, 4)}</span><span class="r-unit">mm</span></div>
+    <div class="readout"><span class="r-label">Min – Max</span><span class="r-value" style="font-size:1rem">${fmt(c.min)} – ${fmt(c.max)}</span></div>
+    <div class="readout ${c.nOutside ? "bad" : "good"}"><span class="r-label">Utanför tolerans</span><span class="r-value">${c.nOutside}</span><span class="r-unit">st</span></div>
+  </div>`;
+}
+function renderM1Results(){
+  const m1 = state.m1;
+  if(m1.values.length < 50){ el("m1-results").innerHTML = ""; return; }
+  const c = capability(m1.values);
+  const pass = c.cp >= 1.67 && c.cpk >= 1.67;
+  let html = `<hr style="border:none;border-top:1px dashed var(--line);margin:22px 0">`;
+  html += `<h3 style="font-size:1.1rem;margin-bottom:8px">Resultat av studie ${m1.runs.length}</h3>`;
+  html += statsStripHTML(c);
+  html += `<div class="chart-title">Individvärdesdiagram — de 50 axlarna i tillverkningsordning</div>
+    <div class="chart-wrap">${runChartSVG(m1.values)}</div>`;
+  html += `<div class="chart-title">Histogram med anpassad normalkurva</div>
+    <div class="chart-wrap">${histogramSVG(m1.values)}</div>
+    <div class="legend"><span><i style="border-color:${CHART.red}" class="dashed"></i>toleransgränser</span>
+    <span><i style="border-color:${CHART.blue}"></i>medelvärde x̄</span>
+    <span><i style="border-color:${CHART.teal}"></i>anpassad normalkurva</span></div>`;
+  html += capFormulaHTML(c, 1.67, "m");
+  html += `<div style="text-align:center">
+    <span class="stamp ${c.cp >= 1.67 ? "pass" : "fail"}">C<sub>m</sub> ${fmt(c.cp, 2)} · ${c.cp >= 1.67 ? "godkänd" : "ej godkänd"}</span>
+    <span class="stamp ${c.cpk >= 1.67 ? "pass" : "fail"}">C<sub>mk</sub> ${fmt(c.cpk, 2)} · ${c.cpk >= 1.67 ? "godkänd" : "ej godkänd"}</span>
+  </div>`;
+  if(!pass && c.cp >= 1.67){
+    html += `<div class="callout insight"><span class="co-title">Insikt — läge, inte spridning</span>
+      Titta noga: C<sub>m</sub> = ${fmt(c.cp, 2)} är godkänt — maskinens <em>spridning</em> ryms alltså
+      gott och väl i toleransen. Ändå underkänns C<sub>mk</sub> = ${fmt(c.cpk, 2)}. Skillnaden kan bara
+      bero på en sak: maskinen är <strong>felcentrerad</strong> (x̄ = ${fmt(c.mean)} i stället för 25,000).
+      Det åtgärdas inte med en ny maskin utan med en enkel justering — gå till steg 2 nedan.</div>`;
+  }else if(!pass){
+    html += `<div class="callout fail"><span class="co-title">Ej godkänd</span>
+      Studien klarar inte kraven. Justera maskinen i steg 2 och kör en ny studie.</div>`;
+  }else{
+    html += `<div class="callout pass"><span class="co-title">Godkänd maskinkapabilitet</span>
+      Både C<sub>m</sub> och C<sub>mk</sub> klarar kravet 1,67 — Svarv 3 duger för uppgiften och du kan
+      gå vidare. Notera värdet C<sub>m</sub> = ${fmt(c.cp, 2)}: du kommer att jämföra det med
+      processkapabiliteten i moment 3.</div>`;
+  }
+  if(m1.runs.length > 0){
+    html += `<table class="data" style="margin-top:16px"><caption>Studiehistorik</caption>
+      <tr><th>Studie</th><th>Offset (mm)</th><th>x̄ (mm)</th><th>s (mm)</th><th>Cₘ</th><th>Cₘₖ</th><th>Bedömning</th></tr>`;
+    m1.runs.forEach((r, i) => {
+      html += `<tr><td>${i + 1}</td><td>${fmtSigned(r.offset)}</td><td>${fmt(r.mean)}</td><td>${fmt(r.sd, 4)}</td>
+        <td>${fmt(r.cm, 2)}</td><td>${fmt(r.cmk, 2)}</td>
+        <td style="color:${r.pass ? "var(--green)" : "var(--red)"};font-weight:700">${r.pass ? "GODKÄND" : "EJ GODKÄND"}</td></tr>`;
+    });
+    html += `</table>`;
+  }
+  el("m1-results").innerHTML = html;
+}
+function initM1(){
+  el("m1-make1").addEventListener("click", () => m1Make(1));
+  el("m1-make10").addEventListener("click", () => m1Make(10));
+  el("m1-offset").addEventListener("input", () => {
+    el("m1-offset-out").textContent = fmtSigned(Number(el("m1-offset").value), 3);
+  });
+  el("m1-newstudy").addEventListener("click", () => {
+    const m1 = state.m1;
+    m1.offset = Number(el("m1-offset").value);
+    m1.streamCount++;
+    m1.values = [];
+    m1.recorded = false;
+    el("m1-feed").innerHTML = "";
+    el("m1-results").innerHTML = `<div class="callout info"><span class="co-title">Ny studie påbörjad</span>
+      Verktygsoffset satt till <code>${fmtSigned(m1.offset, 3)} mm</code>. Tillverka 50 nya axlar.</div>`;
+    saveState();
+    renderM1Status();
+    window.scrollTo({ top: el("m1-make1").getBoundingClientRect().top + window.scrollY - 140, behavior: "smooth" });
+  });
+  // återställ vy från sparat tillstånd
+  renderM1Status();
+  if(state.m1.values.length >= 50){
+    renderM1Results();
+    el("m1-adjust-card").style.display = "block";
+    el("m1-offset").value = state.m1.offset;
+    el("m1-offset-out").textContent = fmtSigned(state.m1.offset, 3);
+  }else if(state.m1.values.length > 0){
+    renderM1Feed(state.m1.values);
+  }
+}
+</script>
+<script>
+"use strict";
+/* ============================================================
+   DEL 3 · APPLIKATION — moment 2–4, rapport, initiering
+   ============================================================ */
+
+/* ============================================================
+   MOMENT 2 — styrdiagram
+   ============================================================ */
+const SCEN_TYPES = {
+  stable: { label: "Stabil process — endast slumpmässig variation",
+            diag: "Processen var stabil hela veckan. Inga larmregler utlöstes — variationen är processens normala brus." },
+  shift:  { label: "Nivåskifte — läget har hoppat till en ny nivå",
+            diag: "Processens läge hoppade plötsligt till en ny nivå — typiskt för t.ex. ett nytt materialparti eller en omställning. Syns som en grupp punkter på samma sida, ofta med punkter utanför styrgränsen i x̄-diagrammet, medan R-diagrammet är lugnt." },
+  trend:  { label: "Trend — läget glider åt ett håll",
+            diag: "Processens läge gled successivt åt ett håll — typiskt för verktygsslitage. Syns som en följd av stigande (eller fallande) punkter i x̄-diagrammet innan styrgränsen till slut passeras." },
+  spread: { label: "Ökad spridning — variationen har blivit större",
+            diag: "Processens spridning ökade — typiskt för glapp, lösa fixturer eller slitna lager. Avslöjas främst av R-diagrammet (punkter över ÖSG) och av att x̄-punkterna börjar spreta." }
+};
+const RULE_TEXT = {
+  1: "punkt utanför 3σ-gränsen",
+  2: "2 av 3 punkter i zon A (utanför 2σ), samma sida",
+  3: "4 av 5 punkter utanför 1σ, samma sida",
+  4: "8 punkter i följd på samma sida om CL",
+  5: "6 punkter i följd stigande eller fallande"
+};
+
+function m2Sigma(){ return P.sigmaM * 1.1; }
+
+function genPhase1(){
+  const rng = makeRng("m2-fas1");
+  const s1 = m2Sigma();
+  const groups = [];
+  for(let g = 0; g < 25; g++){
+    const grp = [];
+    for(let i = 0; i < 5; i++) grp.push(Math.round((SPEC.target + rng.gauss() * s1) * 1000) / 1000);
+    groups.push(grp);
+  }
+  const means = groups.map(mean);
+  const ranges = groups.map(g => Math.max(...g) - Math.min(...g));
+  const xbb = mean(means), rbar = mean(ranges);
+  return {
+    groups, means, ranges, xbb, rbar,
+    uclX: xbb + CONST_N5.A2 * rbar, lclX: xbb - CONST_N5.A2 * rbar,
+    uclR: CONST_N5.D4 * rbar, lclR: 0
+  };
+}
+function genScenarioData(type, attempt){
+  const rng = makeRng("m2-scen-" + type + "-" + attempt);
+  const s1 = m2Sigma();
+  const shiftAt = 7 + Math.floor(rng() * 3);       // grupp 8–10
+  const shiftSign = rng() < 0.5 ? -1 : 1;
+  const groups = [];
+  for(let g = 0; g < 20; g++){
+    let mu = SPEC.target, sg = s1;
+    if(type === "shift" && g >= shiftAt) mu += shiftSign * 1.6 * s1;
+    if(type === "trend" && g >= 4) mu += 0.30 * s1 * (g - 3);
+    if(type === "spread" && g >= 9) sg = s1 * 2.1;
+    const grp = [];
+    for(let i = 0; i < 5; i++) grp.push(Math.round((mu + rng.gauss() * sg) * 1000) / 1000);
+    groups.push(grp);
+  }
+  return groups;
+}
+function genScenario(type){
+  const p1 = state.m2.phase1;
+  for(let attempt = 0; attempt < 30; attempt++){
+    const groups = genScenarioData(type, attempt);
+    const means = groups.map(mean);
+    const ranges = groups.map(g => Math.max(...g) - Math.min(...g));
+    const xF = weRules(means, p1.xbb, p1.uclX);
+    const rF = rRuleFlags(ranges, p1.uclR);
+    const xAlarm = xF.some(f => f.length), rAlarm = rF.some(f => f.length);
+    const ok = type === "stable" ? (!xAlarm && !rAlarm)
+             : type === "spread" ? rAlarm
+             : xAlarm;
+    if(ok) return { groups, means, ranges };
+  }
+  return null; // bör aldrig inträffa
+}
+function renderM2Phase1(){
+  const p1 = state.m2.phase1;
+  if(!p1){ el("m2-phase1-results").innerHTML = ""; return; }
+  let html = `<div class="readout-strip">
+    <div class="readout"><span class="r-label">x̄̄ (CL för x̄)</span><span class="r-value" style="color:var(--blue)">${fmt(p1.xbb)}</span><span class="r-unit">mm</span></div>
+    <div class="readout"><span class="r-label">R̄ (CL för R)</span><span class="r-value" style="color:var(--teal)">${fmt(p1.rbar, 4)}</span><span class="r-unit">mm</span></div>
+    <div class="readout"><span class="r-label">Provgrupper</span><span class="r-value">25</span><span class="r-unit">à n = 5</span></div>
+  </div>
+  <div class="formula-block"><span class="f-title">Styrgränser beräknade ur dina 25 provgrupper (n = 5)</span>
+    <div class="formula">x̄-diagram: SG <span class="f-eq">=</span> x̄̄ ± <span class="c-const">A₂</span>·R̄
+      <span class="f-eq">=</span> ${fmt(p1.xbb)} ± <span class="c-const">0,577</span> · ${fmt(p1.rbar, 4)}
+      <span class="f-eq">→</span> <span class="f-res good" style="color:var(--blue);border-color:var(--blue);background:var(--blue-pale)">ÖSG ${fmt(p1.uclX)} / USG ${fmt(p1.lclX)}</span></div>
+    <div class="formula">R-diagram: ÖSG <span class="f-eq">=</span> <span class="c-const">D₄</span>·R̄
+      <span class="f-eq">=</span> <span class="c-const">2,114</span> · ${fmt(p1.rbar, 4)}
+      <span class="f-eq">=</span> <span class="f-res good" style="color:var(--blue);border-color:var(--blue);background:var(--blue-pale)">${fmt(p1.uclR, 4)}</span>
+      &nbsp;(USG = <span class="c-const">D₃</span>·R̄ = 0)</div>
+    <p class="f-note">Jämför ÖSG/USG (${fmt(p1.uclX)} / ${fmt(p1.lclX)}) med toleransgränserna (25,050 / 24,950):
+    styrgränserna ligger långt <em>innanför</em> toleransen. Det beror dels på att processen är bra, dels på att
+    provgruppsmedelvärden varierar mindre än enskilda värden (centrala gränsvärdessatsen!). Styrgränser och
+    toleransgränser får därför aldrig blandas ihop.</p>
+  </div>
+  <div class="chart-title">x̄-diagram — underlaget (vecka 0, stabil drift)</div>
+  <div class="chart-wrap">${controlChartSVG(p1.means, { cl: p1.xbb, ucl: p1.uclX, lcl: p1.lclX }, { yLabel: "x̄ (mm)" })}</div>
+  <div class="chart-title">R-diagram — underlaget</div>
+  <div class="chart-wrap">${controlChartSVG(p1.ranges, { cl: p1.rbar, ucl: p1.uclR, lcl: 0 }, { yLabel: "R (mm)", zones: false, showLcl: false })}</div>
+  <div class="callout info"><span class="co-title">Zonerna i diagrammet</span>
+    De blå banden delar in avståndet till styrgränserna i zon C (0–1σ), B (1–2σ) och A (2–3σ) räknat
+    från centrallinjen. De används av larmreglerna — se teorirutan ovan.</div>`;
+  el("m2-phase1-results").innerHTML = html;
+  el("m2-collect").disabled = true;
+  el("m2-scenario-card").style.display = "block";
+  renderM2Tabs();
+}
+let m2Active = "A";
+function renderM2Tabs(){
+  const tabs = el("m2-tabs");
+  tabs.innerHTML = "";
+  ["A", "B", "C", "D"].forEach(id => {
+    const sc = state.m2.scenarios[id];
+    const btn = document.createElement("button");
+    btn.className = "scenario-tab" + (m2Active === id ? " active" : "");
+    let status = "";
+    if(sc && sc.answered) status = sc.correctChoice ? "✔" : "✗";
+    btn.innerHTML = `Vecka ${id}<span class="s-status">${status}</span>`;
+    btn.addEventListener("click", () => { m2Active = id; renderM2Tabs(); renderM2Scenario(); });
+    tabs.appendChild(btn);
+  });
+  renderM2Scenario();
+}
+function renderM2Scenario(){
+  const id = m2Active;
+  const host = el("m2-scenario-view");
+  const sc = state.m2.scenarios[id];
+  if(!sc){
+    host.innerHTML = `<div class="callout info"><span class="co-title">Vecka ${id}</span>
+      Provgrupperna från vecka ${id} väntar på analys.</div>
+      <div class="btn-row"><button class="btn primary" id="m2-fetch">▦ Hämta vecka ${id}s 20 provgrupper</button></div>`;
+    el("m2-fetch").addEventListener("click", () => {
+      // slumpa ordningen på scenariotyperna per student (vecka A–D)
+      if(!state.m2.order){
+        const r = makeRng("m2-ordning");
+        const types = ["stable", "shift", "trend", "spread"];
+        for(let i = types.length - 1; i > 0; i--){
+          const j = Math.floor(r() * (i + 1)); [types[i], types[j]] = [types[j], types[i]];
+        }
+        state.m2.order = { A: types[0], B: types[1], C: types[2], D: types[3] };
+      }
+      const type = state.m2.order[id];
+      const data = genScenario(type);
+      state.m2.scenarios[id] = { type, groups: data.groups, answered: false, choice: null, correctChoice: false };
+      saveState();
+      renderM2Scenario();
+    });
+    return;
+  }
+  const p1 = state.m2.phase1;
+  const means = sc.groups.map(mean);
+  const ranges = sc.groups.map(g => Math.max(...g) - Math.min(...g));
+  const xF = weRules(means, p1.xbb, p1.uclX);
+  const rF = rRuleFlags(ranges, p1.uclR);
+  const showV = sc.answered;
+  let html = `<div class="chart-title">x̄-diagram — vecka ${id} (styrgränser från vecka 0)</div>
+    <div class="chart-wrap">${controlChartSVG(means, { cl: p1.xbb, ucl: p1.uclX, lcl: p1.lclX }, { yLabel: "x̄ (mm)", violations: xF, showViolations: showV })}</div>
+    <div class="chart-title">R-diagram — vecka ${id}</div>
+    <div class="chart-wrap">${controlChartSVG(ranges, { cl: p1.rbar, ucl: p1.uclR, lcl: 0 }, { yLabel: "R (mm)", zones: false, showLcl: false, violations: rF, showViolations: showV })}</div>`;
+  if(!sc.answered){
+    html += `<p style="margin-top:14px"><strong>Din bedömning av vecka ${id}:</strong> granska båda diagrammen (glöm inte mönsterreglerna!) och välj den slutsats som stämmer bäst.</p>
+      <div class="answer-options" id="m2-opts">`;
+    const keys = ["stable", "shift", "trend", "spread"];
+    keys.forEach(k => {
+      html += `<label><input type="radio" name="m2-answer" value="${k}"> <span>${esc(SCEN_TYPES[k].label)}</span></label>`;
+    });
+    html += `</div><div class="btn-row"><button class="btn primary" id="m2-check">Rätta min bedömning</button></div>`;
+  }else{
+    const xRules = [...new Set(xF.flat())].sort();
+    const rAlarm = rF.some(f => f.length);
+    html += `<div class="callout ${sc.correctChoice ? "pass" : "fail"}">
+      <span class="co-title">${sc.correctChoice ? "Rätt bedömt!" : "Inte riktigt"}</span>
+      <p><strong>Ditt svar:</strong> ${esc(SCEN_TYPES[sc.choice].label)}<br>
+      <strong>Facit:</strong> ${esc(SCEN_TYPES[sc.type].label)}</p>
+      <p>${esc(SCEN_TYPES[sc.type].diag)}</p>
+      <p style="margin-bottom:0"><strong>Utlösta larm</strong> (nu markerade i diagrammen):
+      ${xRules.length ? "x̄-diagrammet — regel " + xRules.map(r => r + " (" + RULE_TEXT[r] + ")").join(", regel ") : "inga larm i x̄-diagrammet"}.
+      ${rAlarm ? " R-diagrammet — punkt över ÖSG." : " Inga larm i R-diagrammet."}</p></div>`;
+  }
+  host.innerHTML = html;
+  if(!sc.answered){
+    el("m2-check").addEventListener("click", () => {
+      const sel = document.querySelector('input[name="m2-answer"]:checked');
+      if(!sel){ alert("Välj ett alternativ först."); return; }
+      sc.choice = sel.value;
+      sc.answered = true;
+      sc.correctChoice = sc.choice === sc.type;
+      saveState();
+      renderM2Tabs();
+      updateGates();
+    });
+  }
+}
+function initM2(){
+  el("m2-collect").addEventListener("click", () => {
+    state.m2.phase1 = genPhase1();
+    saveState();
+    renderM2Phase1();
+  });
+  if(state.m2.phase1) renderM2Phase1();
+}
+
+/* ============================================================
+   MOMENT 3 — processkapabilitet (och simulatorn för hela veckor)
+   ============================================================ */
+const DAYS = ["Mån", "Tis", "Ons", "Tor", "Fre"];
+function weekParams(){
+  return {
+    sigmaM: P.sigmaM, batchSigma: P.batchSigma, residShift: P.residShift,
+    tempAmp: P.tempAmp, wearSlope: P.wearSlope, wearCycle: 25, centerAdj: 0
+  };
+}
+function tempEffect(i, amp){ return -amp * Math.exp(-i / 5); }
+function simulateShift(par, rng){
+  const batch = rng.gauss() * par.batchSigma;
+  const vals = [];
+  for(let i = 0; i < 25; i++){
+    const wear = par.wearSlope * (i % par.wearCycle);
+    const v = SPEC.target + par.residShift + par.centerAdj + batch + wear +
+              tempEffect(i, par.tempAmp) + rng.gauss() * par.sigmaM;
+    vals.push(Math.round(v * 1000) / 1000);
+  }
+  return vals;
+}
+function simulateWeek(par, streamId){
+  const rng = makeRng(streamId);
+  let values = [];
+  for(let s = 0; s < 10; s++) values = values.concat(simulateShift(par, rng));
+  return values;
+}
+function shiftLabel(s){ return DAYS[Math.floor(s / 2)] + (s % 2 === 0 ? " fm" : " em"); }
+
+function m3RunShift(){
+  const m3 = state.m3;
+  if(m3.shifts >= 10) return;
+  // hela veckan genereras deterministiskt; vi visar skift för skift
+  const all = simulateWeek(weekParams(), "m3-veckan");
+  m3.shifts++;
+  m3.values = all.slice(0, m3.shifts * 25);
+  if(m3.shifts >= 10) m3.done = true;
+  saveState();
+  renderM3();
+  updateGates();
+}
+function weekChartHTML(values, title){
+  const boundaries = [];
+  for(let s = 1; s < Math.ceil(values.length / 25); s++) boundaries.push(s * 25);
+  const labels = [];
+  for(let s = 0; s < Math.ceil(values.length / 25); s++) labels.push({ at: s * 25 + 13, text: shiftLabel(s) });
+  return `<div class="chart-title">${esc(title)}</div>
+    <div class="chart-wrap">${runChartSVG(values, { boundaries, boundaryLabels: labels, xLabel: "detalj nr (skiftgränser streckade)" })}</div>`;
+}
+function renderM3(){
+  const m3 = state.m3;
+  el("m3-counter").textContent = m3.shifts + " / 10 skift";
+  el("m3-run-shift").disabled = m3.shifts >= 10;
+  el("m3-run-all").disabled = m3.shifts >= 10;
+  const host = el("m3-results");
+  if(m3.shifts === 0){ host.innerHTML = ""; return; }
+  let html = weekChartHTML(m3.values, "Produktionsveckan hittills — " + m3.values.length + " axlar");
+  if(m3.shifts < 10){
+    html += `<div class="callout info"><span class="co-title">Titta medan datat växer fram</span>
+      Ser du hur nivån hoppar mellan skiften och hur måtten glider <em>inom</em> varje skift?
+      Det är verklighetens variationskällor — de fanns inte i maskinstudien.</div>`;
+    host.innerHTML = html;
+    return;
+  }
+  const c = capability(m3.values);
+  const passP = c.cp >= 1.33 && c.cpk >= 1.33;
+  html += statsStripHTML(c);
+  html += `<div class="chart-title">Histogram — hela veckan (250 axlar)</div>
+    <div class="chart-wrap">${histogramSVG(m3.values)}</div>`;
+  html += capFormulaHTML(c, 1.33, "p");
+  html += `<div style="text-align:center">
+    <span class="stamp ${c.cp >= 1.33 ? "pass" : "fail"}">C<sub>p</sub> ${fmt(c.cp, 2)} · ${c.cp >= 1.33 ? "godkänd" : "ej godkänd"}</span>
+    <span class="stamp ${c.cpk >= 1.33 ? "pass" : "fail"}">C<sub>pk</sub> ${fmt(c.cpk, 2)} · ${c.cpk >= 1.33 ? "godkänd" : "ej godkänd"}</span>
+  </div>`;
+  const bestM1 = state.m1.runs.filter(r => r.pass).slice(-1)[0] || state.m1.runs.slice(-1)[0];
+  if(bestM1){
+    html += `<div class="chart-title" style="margin-top:20px">Jämförelse: maskin (moment 1) mot process (nu)</div>
+      <div class="chart-wrap">${indexBarsSVG([
+        { label: "Cₘ (maskin)", value: bestM1.cm, req: 1.67, note: "kort studie, 50 st i följd — krav 1,67" },
+        { label: "Cₚ (process)", value: c.cp, req: 1.33, note: "en hel vecka, alla variationskällor — krav 1,33" },
+        { label: "Cₚₖ (process)", value: c.cpk, req: 1.33, note: "som Cₚ men med hänsyn till centreringen — krav 1,33" }
+      ], 1.33)}</div>`;
+    html += `<div class="callout insight"><span class="co-title">Nyckelinsikten i hela laborationen</span>
+      Samma maskin, samma toleranser — men kapabiliteten föll från C<sub>m</sub> = ${fmt(bestM1.cm, 2)} till
+      C<sub>p</sub> = ${fmt(c.cp, 2)}. Standardavvikelsen växte från s = ${fmt(bestM1.sd, 4)} till
+      s = ${fmt(c.sd, 4)} mm när materialpartier, verktygsslitage, temperaturdrift och omställningar fick
+      verka en hel vecka. ${c.cpk < c.cp - 0.1 ? "Dessutom ligger processen inte längre centrerad (x̄ = " + fmt(c.mean) + "), vilket pressar C<sub>pk</sub> ännu lägre." : ""}
+      ${passP ? "" : "Kravet 1,33 klaras inte — därför blir ditt nästa uppdrag att förbättra processen i moment 4."}</div>`;
+  }
+  host.innerHTML = html;
+}
+function initM3(){
+  el("m3-run-shift").addEventListener("click", m3RunShift);
+  el("m3-run-all").addEventListener("click", () => {
+    const step = () => { if(state.m3.shifts < 10){ m3RunShift(); setTimeout(step, 260); } };
+    step();
+  });
+  renderM3();
+}
+
+/* ============================================================
+   MOMENT 4 — förbättra & verifiera
+   ============================================================ */
+const BUDGET = 80;
+const ACTIONS = [
+  { id: "center", name: "Centrera processen", cost: 0,
+    desc: "Justera verktygsoffset och omställningsrutin utifrån veckans mätdata så att medelvärdet hamnar på 25,000 mm." },
+  { id: "tool", name: "Tätare verktygsbyten", cost: 20,
+    desc: "Byt skär mitt i skiftet i stället för bara vid skiftstart — halverar slitagets vandring uppåt." },
+  { id: "temp", name: "Varmkörningsrutin", cost: 15,
+    desc: "Maskinen varmkörs automatiskt före skiftstart så att uppvärmningsdriften i praktiken försvinner." },
+  { id: "material", name: "Materialstyrning", cost: 40,
+    desc: "Avtal med leverantören om ett verifierat, homogent materialparti per vecka i stället för blandade partier." },
+  { id: "fixture", name: "Ny precisionsfixtur", cost: 55,
+    desc: "Hydraulisk uppspänning som minskar maskinens egen spridning med ca 20 %." }
+];
+function m4Params(selected){
+  const par = weekParams();
+  if(selected.includes("tool")) par.wearCycle = 13;
+  if(selected.includes("temp")) par.tempAmp = P.tempAmp * 0.1;
+  if(selected.includes("material")) par.batchSigma = P.batchSigma * 0.4;
+  if(selected.includes("fixture")) par.sigmaM = P.sigmaM * 0.8;
+  if(selected.includes("center")){
+    // operatören centrerar utifrån data: kompensera medeleffekterna av lägesfel, slitage och temperatur
+    let wearMean = 0, tempMean = 0;
+    for(let i = 0; i < 25; i++){ wearMean += par.wearSlope * (i % par.wearCycle); tempMean += tempEffect(i, par.tempAmp); }
+    wearMean /= 25; tempMean /= 25;
+    par.centerAdj = -(par.residShift + wearMean + tempMean) + (makeRng("m4-centrering")() - 0.5) * 0.002;
+  }
+  return par;
+}
+function sigmaComponents(par){
+  // analytiska bidrag för variansstapeldiagrammet
+  const wearVals = [], tempVals = [];
+  for(let i = 0; i < 25; i++){ wearVals.push(par.wearSlope * (i % par.wearCycle)); tempVals.push(tempEffect(i, par.tempAmp)); }
+  const sdPop = a => { const m = mean(a); return Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / a.length); };
+  return [
+    { label: "Materialpartier (mellan skift)", val: par.batchSigma },
+    { label: "Maskinens egen spridning", val: par.sigmaM },
+    { label: "Verktygsslitage (inom skift)", val: sdPop(wearVals) },
+    { label: "Temperaturdrift (skiftstart)", val: sdPop(tempVals) }
+  ];
+}
+function m4Cost(selected){
+  return ACTIONS.filter(a => selected.includes(a.id)).reduce((s, a) => s + a.cost, 0);
+}
+function renderM4Actions(){
+  const host = el("m4-actions");
+  host.innerHTML = "";
+  ACTIONS.forEach(a => {
+    const lab = document.createElement("label");
+    const sel = state.m4.selected.includes(a.id);
+    lab.className = "action-card" + (sel ? " selected" : "");
+    lab.innerHTML = `<input type="checkbox" ${sel ? "checked" : ""} value="${a.id}">
+      <span class="a-name">${sel ? "☑" : "☐"} ${esc(a.name)}</span>
+      <span class="a-desc">${esc(a.desc)}</span>
+      <span class="a-cost">${a.cost === 0 ? "Kostnad: 0 kr — bara ingenjörstid" : "Kostnad: " + a.cost + " kkr"}</span>`;
+    lab.querySelector("input").addEventListener("change", ev => {
+      if(ev.target.checked){ if(!state.m4.selected.includes(a.id)) state.m4.selected.push(a.id); }
+      else state.m4.selected = state.m4.selected.filter(x => x !== a.id);
+      saveState();
+      renderM4Actions();
+    });
+    host.appendChild(lab);
+  });
+  const cost = m4Cost(state.m4.selected);
+  const over = cost > BUDGET;
+  el("m4-budget").innerHTML = `Vald kostnad: <strong class="${over ? "over" : ""}">${cost} kkr</strong> av budget ${BUDGET} kkr` +
+    (over ? ` — <span class="over">över budget! Välj bort något.</span>` : ` — ${BUDGET - cost} kkr kvar.`);
+  el("m4-verify").disabled = over;
+  el("m4-attempts").textContent = state.m4.attempts.length ? "Genomförda försök: " + state.m4.attempts.length : "";
+}
+function m4Verify(){
+  const selected = [...state.m4.selected];
+  const attemptNo = state.m4.attempts.length + 1;
+  const par = m4Params(selected);
+  const values = simulateWeek(par, "m4-verifiering-" + attemptNo);
+  const c = capability(values);
+  const pass = c.cpk >= 1.33;
+  state.m4.attempts.push({ selected, cost: m4Cost(selected), cp: c.cp, cpk: c.cpk, mean: c.mean, sd: c.sd, pass });
+  if(pass) state.m4.passed = true;
+  saveState();
+  renderM4Results(values, par, selected, pass);
+  renderM4Actions();
+  updateGates();
+}
+function renderM4Results(values, par, selected, pass){
+  const c = capability(values);
+  const host = el("m4-results-wrap");
+  let html = `<div class="card"><h3><span class="tag">Resultat</span>Verifierande studie · försök ${state.m4.attempts.length}</h3>`;
+  html += `<p>Åtgärder: <strong>${selected.map(id => ACTIONS.find(a => a.id === id).name).join(", ") || "inga"}</strong>
+    (${m4Cost(selected)} kkr). En ny produktionsvecka har körts med åtgärderna på plats.</p>`;
+  html += weekChartHTML(values, "Verifieringsveckan — 250 axlar");
+  html += statsStripHTML(c);
+  html += `<div class="chart-title">Histogram — verifieringsveckan</div><div class="chart-wrap">${histogramSVG(values)}</div>`;
+  html += capFormulaHTML(c, 1.33, "p");
+  html += `<div style="text-align:center"><span class="stamp ${pass ? "pass" : "fail"}">C<sub>pk</sub> ${fmt(c.cpk, 2)} · ${pass ? "verifierat godkänd" : "ej godkänd"}</span></div>`;
+  if(pass){
+    const before = sigmaComponents(weekParams());
+    const after = sigmaComponents(par);
+    const comps = before.map((b, i) => ({ label: b.label, before: b.val, after: after[i].val }));
+    const beforeC = capability(state.m3.values.length === 250 ? state.m3.values : simulateWeek(weekParams(), "m3-veckan"));
+    html += `<div class="callout pass"><span class="co-title">Förbättringen är verifierad</span>
+      C<sub>pk</sub> lyfte från ${fmt(beforeC.cpk, 2)} till ${fmt(c.cpk, 2)} — och nu finns <em>data</em> som bevisar det.
+      Kvalitetsteknikens processanalys nedan visar var förbättringen kom ifrån. Notera hur lite de källor du
+      inte åtgärdade flyttade sig — och fundera på om någon av dina kronor gjorde liten nytta.</div>`;
+    html += `<div class="chart-title">Processanalys: variationskällorna före och efter</div>
+      <div class="chart-wrap">${varianceBarsSVG(comps)}</div>
+      <p style="font-size:.9rem;color:var(--ink-soft)">Lägesfelet (avstånd till målvärdet) var före åtgärd
+      ca ${fmt(Math.abs(mean(state.m3.values) - SPEC.target) * 1000, 1)} µm och är nu
+      ${fmt(Math.abs(c.mean - SPEC.target) * 1000, 1)} µm. Kom ihåg: spridningskällor adderas kvadratiskt,
+      σ²<sub>tot</sub> = σ₁² + σ₂² + … — därför lönar det sig bara att jaga de största.</p>`;
+  }else{
+    // ledtråd: största kvarvarande källa
+    const comps = sigmaComponents(par);
+    const biggest = comps.reduce((a, b) => (b.val > a.val ? b : a));
+    const offCenter = Math.abs(c.mean - SPEC.target) > 0.006;
+    html += `<div class="callout fail"><span class="co-title">Inte godkänt — analysera och försök igen</span>
+      C<sub>pk</sub> = ${fmt(c.cpk, 2)} når inte 1,33. ${offCenter
+        ? "Processen ligger fortfarande förskjuten (x̄ = " + fmt(c.mean) + " mm). Ett lägesfel är den billigaste kapabilitetstjuven att åtgärda — har du centrerat?"
+        : "Centreringen ser bra ut — problemet är spridningen."}
+      Mätdatat antyder att den största kvarvarande spridningskällan är <strong>${esc(biggest.label.toLowerCase())}</strong>.
+      Justera dina val ovan och kör ett nytt försök (attans, ännu en produktionsvecka…).</div>`;
+  }
+  if(state.m4.attempts.length){
+    html += `<table class="data" style="margin-top:14px"><caption>Försökshistorik</caption>
+      <tr><th>Försök</th><th>Åtgärder</th><th>Kostnad</th><th>x̄</th><th>s</th><th>Cₚ</th><th>Cₚₖ</th><th>Bedömning</th></tr>`;
+    state.m4.attempts.forEach((a, i) => {
+      html += `<tr><td>${i + 1}</td><td style="font-family:var(--sans);font-size:.72rem">${a.selected.map(id => ACTIONS.find(x => x.id === id).name).join(", ") || "–"}</td>
+        <td>${a.cost} kkr</td><td>${fmt(a.mean)}</td><td>${fmt(a.sd, 4)}</td><td>${fmt(a.cp, 2)}</td><td>${fmt(a.cpk, 2)}</td>
+        <td style="color:${a.pass ? "var(--green)" : "var(--red)"};font-weight:700">${a.pass ? "GODKÄND" : "EJ GODKÄND"}</td></tr>`;
+    });
+    html += `</table>`;
+  }
+  html += `</div>`;
+  host.innerHTML = html;
+  host.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function initM4(){
+  renderM4Actions();
+  el("m4-verify").addEventListener("click", m4Verify);
+  // återskapa senaste försöket vid omladdning
+  const last = state.m4.attempts.slice(-1)[0];
+  if(last){
+    const par = m4Params(last.selected);
+    const values = simulateWeek(par, "m4-verifiering-" + state.m4.attempts.length);
+    renderM4Results(values, par, last.selected, last.pass);
+    window.scrollTo(0, 0);
+  }
+}
+
+/* ============================================================
+   LABRAPPORT
+   ============================================================ */
+function renderReport(){
+  const host = el("report-content");
+  const today = new Date().toLocaleDateString("sv-SE");
+  const missing = `<p class="rep-incomplete">Momentet är inte genomfört ännu — avsnittet fylls i när du är klar.</p>`;
+  const quizScore = mKey => {
+    const bank = QUIZ[mKey];
+    if(!state.quizPassed[mKey]) return "ej godkänt ännu";
+    return bank.qs.length + " / " + bank.qs.length + " rätt (godkänt)";
+  };
+  const reflectBlock = mKey => {
+    const t = (state.reflections[mKey] || "").trim();
+    return t ? `<p><strong>Reflektion:</strong> ${esc(t).replace(/\n/g, "<br>")}</p>`
+             : `<p class="rep-incomplete">Ingen reflektion sparad.</p>`;
+  };
+  let html = `<div style="text-align:center;margin-bottom:26px">
+      <span class="kicker">Labrapport · Statistisk processtyrning och kapabilitet</span>
+      <h2 style="font-size:1.8rem;margin-top:6px">SPC-laborationen — Svenska Axel AB</h2>
+    </div>
+    <div class="rep-meta">
+      <div><span class="tb-label">Laborant</span>${esc(state.studentName || "–")}</div>
+      <div><span class="tb-label">Datum</span>${today}</div>
+      <div><span class="tb-label">Artikel</span>Axel A-2504, Ø 25,000 ± 0,050 mm</div>
+      <div><span class="tb-label">Datafrö</span>${esc((state.studentName || "").trim().toLowerCase())} (reproducerbart)</div>
+    </div>`;
+
+  /* Moment 0 */
+  html += `<div class="rep-section"><h3>Moment 0 · Introduktion och teori</h3>
+    <p>Kontrollfrågor: ${quizScore("m0")}.</p>${reflectBlock("m0")}</div>`;
+
+  /* Moment 1 */
+  html += `<div class="rep-section"><h3>Moment 1 · Maskinkapabilitetsstudie (Cₘ / Cₘₖ)</h3>`;
+  if(state.m1.runs.length){
+    html += `<table class="data"><caption>Genomförda studier (50 axlar per studie, krav ≥ 1,67)</caption>
+      <tr><th>Studie</th><th>Offset</th><th>x̄ (mm)</th><th>s (mm)</th><th>Cₘ</th><th>Cₘₖ</th><th>Bedömning</th></tr>`;
+    state.m1.runs.forEach((r, i) => {
+      html += `<tr><td>${i + 1}</td><td>${fmtSigned(r.offset)}</td><td>${fmt(r.mean)}</td><td>${fmt(r.sd, 4)}</td>
+        <td>${fmt(r.cm, 2)}</td><td>${fmt(r.cmk, 2)}</td><td>${r.pass ? "GODKÄND" : "EJ GODKÄND"}</td></tr>`;
+    });
+    html += `</table>`;
+    if(state.m1.values.length >= 50){
+      html += `<div class="chart-wrap">${histogramSVG(state.m1.values, { height: 260 })}</div>`;
+    }
+  }else html += missing;
+  html += `<p>Kontrollfrågor: ${quizScore("m1")}.</p>${reflectBlock("m1")}</div>`;
+
+  /* Moment 2 */
+  html += `<div class="rep-section"><h3>Moment 2 · Styrdiagram (x̄ / R)</h3>`;
+  const p1 = state.m2.phase1;
+  if(p1){
+    html += `<p>Styrgränser ur 25 provgrupper (n = 5): x̄-diagram CL = ${fmt(p1.xbb)}, ÖSG = ${fmt(p1.uclX)},
+      USG = ${fmt(p1.lclX)}; R-diagram CL = ${fmt(p1.rbar, 4)}, ÖSG = ${fmt(p1.uclR, 4)}.</p>`;
+    const anyScen = ["A", "B", "C", "D"].some(id => state.m2.scenarios[id]);
+    if(anyScen){
+      html += `<table class="data"><caption>Bedömning av produktionsveckorna</caption>
+        <tr><th>Vecka</th><th>Min bedömning</th><th>Facit</th><th>Resultat</th></tr>`;
+      ["A", "B", "C", "D"].forEach(id => {
+        const sc = state.m2.scenarios[id];
+        if(sc && sc.answered){
+          html += `<tr><td>${id}</td><td style="font-family:var(--sans);font-size:.72rem">${esc(SCEN_TYPES[sc.choice].label)}</td>
+            <td style="font-family:var(--sans);font-size:.72rem">${esc(SCEN_TYPES[sc.type].label)}</td>
+            <td>${sc.correctChoice ? "RÄTT" : "FEL"}</td></tr>`;
+        }else{
+          html += `<tr><td>${id}</td><td colspan="3" class="rep-incomplete">ej bedömd</td></tr>`;
+        }
+      });
+      html += `</table>`;
+    }
+  }else html += missing;
+  html += `<p>Kontrollfrågor: ${quizScore("m2")}.</p>${reflectBlock("m2")}</div>`;
+
+  /* Moment 3 */
+  html += `<div class="rep-section"><h3>Moment 3 · Processkapabilitetsstudie (Cₚ / Cₚₖ)</h3>`;
+  if(state.m3.done){
+    const c = capability(state.m3.values);
+    const bestM1 = state.m1.runs.filter(r => r.pass).slice(-1)[0];
+    html += `<p>En produktionsvecka (5 dagar × 2 skift, 250 axlar): x̄ = ${fmt(c.mean)} mm, s = ${fmt(c.sd, 4)} mm,
+      <strong>Cₚ = ${fmt(c.cp, 2)}</strong>, <strong>Cₚₖ = ${fmt(c.cpk, 2)}</strong> (krav ≥ 1,33
+      → ${c.cp >= 1.33 && c.cpk >= 1.33 ? "godkänt" : "ej godkänt"}). Skattad felandel ${fmtPpm(c.ppm)} ppm.</p>`;
+    if(bestM1) html += `<div class="chart-wrap">${indexBarsSVG([
+      { label: "Cₘ (maskin)", value: bestM1.cm, req: 1.67 },
+      { label: "Cₚ (process)", value: c.cp, req: 1.33 },
+      { label: "Cₚₖ (process)", value: c.cpk, req: 1.33 }
+    ], 1.33)}</div>`;
+    html += `<div class="chart-wrap">${histogramSVG(state.m3.values, { height: 260 })}</div>`;
+  }else html += missing;
+  html += `<p>Kontrollfrågor: ${quizScore("m3")}.</p>${reflectBlock("m3")}</div>`;
+
+  /* Moment 4 */
+  html += `<div class="rep-section"><h3>Moment 4 · Förbättring och verifiering</h3>`;
+  if(state.m4.attempts.length){
+    html += `<table class="data"><caption>Förbättringsförsök (budget ${BUDGET} kkr, mål Cₚₖ ≥ 1,33)</caption>
+      <tr><th>Försök</th><th>Åtgärder</th><th>Kostnad</th><th>Cₚ</th><th>Cₚₖ</th><th>Bedömning</th></tr>`;
+    state.m4.attempts.forEach((a, i) => {
+      html += `<tr><td>${i + 1}</td><td style="font-family:var(--sans);font-size:.72rem">${a.selected.map(id => ACTIONS.find(x => x.id === id).name).join(", ") || "–"}</td>
+        <td>${a.cost} kkr</td><td>${fmt(a.cp, 2)}</td><td>${fmt(a.cpk, 2)}</td><td>${a.pass ? "GODKÄND" : "EJ GODKÄND"}</td></tr>`;
+    });
+    html += `</table>`;
+    if(state.m4.passed) html += `<p><strong>Slutsats:</strong> förbättringen är verifierad med en ny kapabilitetsstudie — PDCA-cykeln är sluten.</p>`;
+  }else html += missing;
+  html += `<p>Kontrollfrågor: ${quizScore("m4")}.</p>${reflectBlock("m4")}</div>`;
+
+  /* Sammanfattning */
+  const allDone = [0, 1, 2, 3, 4].every(m => taskDone(m) && state.quizPassed["m" + m]);
+  html += `<div class="rep-section"><h3>Sammanfattning</h3>
+    <p>${allDone
+      ? "Samtliga moment är genomförda och godkända."
+      : "Laborationen är ännu inte helt genomförd — se markeringarna ovan."}
+    Laborationens mätdata är simulerade och genereras deterministiskt ur laborantens namn, vilket gör
+    varje körning unik men fullt reproducerbar för granskning.</p>
+    ${allDone ? '<div style="text-align:center"><span class="stamp pass">Laboration genomförd</span></div>' : ""}</div>`;
+  host.innerHTML = html;
+}
+
+/* ============================================================
+   INITIERING
+   ============================================================ */
+function enterLab(){
+  el("start-screen").style.display = "none";
+  el("stepper").style.display = "";
+  el("tb-student").textContent = state.studentName;
+  el("tb-date").textContent = new Date().toLocaleDateString("sv-SE");
+  computeHiddenParams();
+  // rendera alla moment
+  initM0(); initM1(); initM2(); initM3(); initM4();
+  ["m0", "m1", "m2", "m3", "m4"].forEach(k => { renderQuiz(k); renderReflect(k); });
+  updateGates();
+  showMoment(state.current);
+}
+document.addEventListener("DOMContentLoaded", () => {
+  loadState();
+  el("btn-start").addEventListener("click", () => {
+    const name = el("student-name").value.trim();
+    if(name.length < 3){ alert("Skriv ditt fullständiga namn — det används för att skapa dina unika mätdata."); return; }
+    state.studentName = name;
+    state.started = true;
+    saveState();
+    enterLab();
+  });
+  el("student-name").addEventListener("keydown", ev => { if(ev.key === "Enter") el("btn-start").click(); });
+  document.querySelectorAll(".step-btn[data-moment]").forEach(btn => {
+    btn.addEventListener("click", () => showMoment(Number(btn.dataset.moment)));
+  });
+  el("btn-glossary").addEventListener("click", () => el("glossary").showModal());
+  el("btn-close-glossary").addEventListener("click", () => el("glossary").close());
+  el("btn-print").addEventListener("click", () => { renderReport(); window.print(); });
+  el("btn-refresh-report").addEventListener("click", renderReport);
+  el("btn-reset-all").addEventListener("click", () => {
+    if(confirm("Detta raderar ALLT du gjort i laborationen (data, svar, reflektioner). Är du säker?")){
+      localStorage.removeItem(STORE_KEY);
+      location.reload();
+    }
+  });
+  if(state.started && state.studentName){
+    el("student-name").value = state.studentName;
+    enterLab();
+  }
+});
+</script>
+</body>
+</html>
