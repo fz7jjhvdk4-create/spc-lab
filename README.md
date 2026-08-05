@@ -9,7 +9,8 @@ automatiskt sammanställd labrapport.
 
 **▶ Kör laborationen: <https://spc-lab.vercel.app>**
 
-**📖 Ska du använda laborationen i din kurs? Läs [lärarhandledningen](LARARHANDLEDNING.md).**
+**📖 Ska du använda laborationen i din kurs? Läs [lärarhandledningen](LARARHANDLEDNING.md)**
+*(finns även som [Word-dokument](Lararhandledning%20SPC-laborationen.docx) att skriva ut eller mejla till kollegor).*
 
 ## Snabbfakta
 
