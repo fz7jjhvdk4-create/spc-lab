@@ -581,6 +581,13 @@ footer.colophon{
 /* ---------- Responsivt ---------- */
 @media (max-width:720px){
   body{ font-size:16px; }
+  /* Breda tabeller (studiehistorik, försökshistorik, rapporten) rullar i
+     sidled inuti sin egen ruta i stället för att spränga sidbredden —
+     annars zoomar mobilwebbläsare ut hela sidan för att få plats. */
+  table.data{ display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  /* Skyddsnät: inget kvarvarande överspill får bredda sidan.
+     "clip" i stället för "hidden" så att sticky-navigeringen inte påverkas. */
+  html{ overflow-x:clip; }
   .masthead-inner{ padding:16px; }
   .titleblock{ display:none; }
   main{ padding:22px 14px 70px; }
