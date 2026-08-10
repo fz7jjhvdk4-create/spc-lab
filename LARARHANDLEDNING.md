@@ -232,7 +232,8 @@ t.ex. Bergman & Klefsjö, *Kvalitet från behov till användning*: duglighetsind
 Cm/Cmk (maskin, krav 1,67) och Cp/Cpk (process, krav 1,33), styrdiagram med
 provgrupper och A₂/D₃/D₄-konstanter, samt förbättringscykeln PDCA. I laborationen
 används genomgående den totala standardavvikelsen s; skillnaden mot
-inomgruppsskattningen R̄/d₂ (Cp/Cpk kontra Pp/Ppk enligt AIAG) tas upp i en
+inomgruppsskattningen R̄/d₂ (Cp/Cpk kontra Pp/Ppk enligt AIAG, *Automotive Industry
+Action Group* — den amerikanska fordonsindustrins standardiseringsorganisation) tas upp i en
 fördjupningsruta i moment 3.
 
 ---
