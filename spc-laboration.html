@@ -650,6 +650,10 @@ footer.colophon{
       <li>välja <strong>förbättringsåtgärder</strong> och verifiera att de fungerar,</li>
       <li>sammanställa allt i en <strong>labrapport</strong>.</li>
     </ul>
+    <p><em>SPC</em> i laborationens namn står för <strong>Statistical Process Control</strong>
+    &mdash; statistisk processtyrning &mdash; konsten att övervaka en process med statistik i
+    stället för att kontrollera färdiga detaljer. Fler facktermer förklaras löpande och i
+    ordlistan i menyraden.</p>
     <p>Momenten låses upp i tur och ordning. Dina data är unika för dig &mdash; de skapas
     ur ditt namn &mdash; så din labbkompis får andra mätvärden än du. Allt du gör sparas
     automatiskt i webbläsaren, så du kan stänga sidan och fortsätta senare.</p>
@@ -906,7 +910,8 @@ footer.colophon{
       <span class="f-title">Styrgränser (n = 5)</span>
       <div class="formula">x̄-diagram:&nbsp; <span class="f-eq">SG = </span> x̄̄ ± <span class="c-const">A₂</span>·R̄ &nbsp;&nbsp;<span style="color:var(--ink-faint)">där <span class="c-const">A₂ = 0,577</span></span></div>
       <div class="formula">R-diagram:&nbsp; <span class="f-eq">ÖSG = </span><span class="c-const">D₄</span>·R̄ = <span class="c-const">2,114</span>·R̄, &nbsp; <span class="f-eq">USG = </span><span class="c-const">D₃</span>·R̄ = 0</div>
-      <p class="f-note">x̄̄ är medelvärdet av alla gruppmedelvärden och R̄ medelvärdet av alla
+      <p class="f-note">Beteckningar: SG = styrgräns (ÖSG/USG = övre/undre styrgräns) och
+      CL = centrallinje. x̄̄ är medelvärdet av alla gruppmedelvärden och R̄ medelvärdet av alla
       variationsvidder. Konstanterna A₂, D₃, D₄ beror på provgruppsstorleken och är tabellerade
       så att gränserna motsvarar ±3 standardavvikelser <em>för punkterna i diagrammet</em>.
       Observera: styrgränserna har inget med toleransgränserna att göra!</p>
@@ -1049,7 +1054,8 @@ footer.colophon{
   <div class="card mission">
     <span class="kicker">Din uppgift i detta moment</span>
     <p style="margin-top:6px">Ledningen har gett dig en förbättringsbudget på
-    <strong>80&nbsp;kkr</strong>. Välj åtgärder, genomför dem och kör en ny veckolång
+    <strong>80&nbsp;kkr</strong> (kilokronor = tusen kronor, alltså 80&nbsp;000&nbsp;kr).
+    Välj åtgärder, genomför dem och kör en ny veckolång
     kapabilitetsstudie. Målet: <strong>C<sub>pk</sub> ≥ 1,33</strong>, verifierat med data.
     Blir det inte godkänt får du ompröva dina val och försöka igen &mdash; men varje försök
     kostar en produktionsvecka, så tänk efter före!</p>
@@ -1118,6 +1124,12 @@ footer.colophon{
   <h3>Ordlista</h3>
   <dl>
     <dt>AIAG</dt><dd>Automotive Industry Action Group — den amerikanska fordonsindustrins standardiseringsorganisation. Ger bl.a. ut den SPC-handbok där uppdelningen i C<sub>p</sub>/C<sub>pk</sub> (inomgruppsspridning) och P<sub>p</sub>/P<sub>pk</sub> (total spridning) definieras. Nämns i fördjupningsrutan i moment 3.</dd>
+    <dt>SPC</dt><dd>Statistical Process Control — statistisk processtyrning. Att med statistiska metoder (främst styrdiagram) övervaka en process, skilja naturlig variation från urskiljbara orsaker och agera innan felaktiga detaljer tillverkas.</dd>
+    <dt>CNC</dt><dd>Computer Numerical Control — datorstyrd verktygsmaskin. Svarv 3 är en CNC-svarv: bearbetningen styrs av ett program, och inställningar som verktygsoffset görs i styrsystemet.</dd>
+    <dt>CL, ÖSG, USG</dt><dd>Beteckningar i styrdiagram: CL = centrallinje (processens medelnivå), ÖSG/USG = övre respektive undre styrgräns. Jämför engelskans UCL/LCL.</dd>
+    <dt>Fixtur</dt><dd>Anordning som spänner fast och positionerar arbetsstycket i maskinen. Glapp eller slitage i fixturen ger ökad spridning i måtten.</dd>
+    <dt>Skär (vändskär)</dt><dd>Verktygets utbytbara skäregg, oftast i hårdmetall. Skäret slits under bearbetningen — måtten glider — och byts därför rutinmässigt.</dd>
+    <dt>kkr</dt><dd>Kilokronor = tusen kronor. 80 kkr = 80 000 kr. Vanlig enhet i industrins kalkyler.</dd>
     <dt>Toleransgränser (UTG / ÖTG)</dt><dd>Undre respektive övre toleransgräns — kundens/ritningens krav på varje enskild detalj. Kallas även specifikationsgränser (LSL/USL på engelska).</dd>
     <dt>Styrgränser (SG)</dt><dd>Larmgränser i ett styrdiagram, beräknade ur processens egna data (±3σ för den storhet som plottas). Har inget med toleransgränserna att göra.</dd>
     <dt>Normalfördelning</dt><dd>Symmetrisk, klockformad sannolikhetsfördelning som beskrivs helt av läget μ och spridningen σ. Summan av många små oberoende störningar blir approximativt normalfördelad.</dd>

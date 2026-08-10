@@ -18,7 +18,8 @@
 | **Examination** | Studenten sparar sin labrapport som PDF och laddar upp den på kursens lärplattform |
 
 Laborationen är byggd kring en berättelse: studenten är nyanställd kvalitetsingenjör
-på det fiktiva företaget *Svenska Axel AB*, där CNC-svarven *Svarv 3* tillverkar axlar
+på det fiktiva företaget *Svenska Axel AB*, där CNC-svarven *Svarv 3* (CNC =
+*Computer Numerical Control*, datorstyrd verktygsmaskin) tillverkar axlar
 med kravet **Ø 25,000 ± 0,050 mm**. Kunden klagar på kasserade axlar, och studenten
 ska reda ut varför — och åtgärda det.
 
@@ -34,7 +35,7 @@ Efter genomförd laboration kan studenten:
 4. genomföra och tolka en **processkapabilitetsstudie** (Cp, Cpk) och förklara varför
    processkapabiliteten alltid är sämre än maskinkapabiliteten,
 5. prioritera **förbättringsåtgärder** utifrån hur variationskällor adderas kvadratiskt,
-   och verifiera förbättringar med data (PDCA).
+   och verifiera förbättringar med data (PDCA — Planera–Gör–Studera–Lär).
 
 ---
 
@@ -64,7 +65,7 @@ Som lärare bör du känna till de pedagogiska "fällor" som är medvetet konstr
 
 ### Moment 0 · Introduktion och teori (~20 min)
 Interaktiv normalfördelning där studenten drar i reglage för läge (μ) och spridning (σ)
-mot toleransgränserna och ser kassationen i ppm ändras live. Uppgiftskravet är att båda
+mot toleransgränserna och ser kassationen i ppm (parts per million) ändras live. Uppgiftskravet är att båda
 reglagen använts. Grundbegrepp: slumpmässiga/urskiljbara orsaker, toleransgränser
 (kundens röst) kontra styrgränser (processens röst).
 
@@ -101,8 +102,8 @@ skiftstart och kvarvarande lägesfel. Cp och Cpk beräknas mot kravet ≥ 1,33.
 > studenten *se* källorna: nivåhopp mellan skift, drift inom skift.
 
 ### Moment 4 · Förbättra och verifiera (~30 min)
-Studenten väljer förbättringsåtgärder inom en budget på **80 kkr** och verifierar med
-en ny veckostudie. Mål: Cpk ≥ 1,33. Åtgärderna:
+Studenten väljer förbättringsåtgärder inom en budget på **80 kkr** (kilokronor =
+tusen kronor) och verifierar med en ny veckostudie. Mål: Cpk ≥ 1,33. Åtgärderna:
 
 | Åtgärd | Kostnad | Effekt (dold för studenten) |
 |---|---|---|
