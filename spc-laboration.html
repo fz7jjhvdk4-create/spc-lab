@@ -2766,7 +2766,11 @@ function renderReport(){
       : "Laborationen är ännu inte helt genomförd — se markeringarna ovan."}
     Laborationens mätdata är simulerade och genereras deterministiskt ur laborantens namn, vilket gör
     varje körning unik men fullt reproducerbar för granskning.</p>
-    ${allDone ? '<div style="text-align:center"><span class="stamp pass">Laboration genomförd</span></div>' : ""}</div>`;
+    ${allDone ? '<div style="text-align:center"><span class="stamp pass">Laboration genomförd</span></div>' : ""}
+    <div class="callout info"><span class="co-title">Inlämning</span>
+    Spara denna rapport som PDF (knappen &raquo;Skriv ut / spara som PDF&laquo;, välj
+    &raquo;Spara som PDF&laquo; i utskriftsdialogen) och <strong>ladda upp PDF-filen på kursens
+    Canvas-sida</strong> som en vanlig inlämningsuppgift. Ingenting lämnas in i själva laborationen.</div></div>`;
   host.innerHTML = html;
 }
 
